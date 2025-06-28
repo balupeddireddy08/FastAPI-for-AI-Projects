@@ -13,7 +13,7 @@ Forget dry, technical tutorials. We're building **real projects** that you'll ac
 - 🤖 **AI Assistant Marketplace** - Build the future
 - 🚚 **Real-time Delivery Tracker** - Lightning-fast async magic
 
-Each project builds on the last, taking you from **complete beginner** to **API superhero**! 🦸‍♂️
+Each project builds on the last, taking you from **complete beginner** to **API Expert**! 🦸‍♂️
 
 ## 🎮 Choose Your Adventure Path
 
@@ -44,7 +44,7 @@ Dive into the AI Assistant and Delivery Tracking projects for some serious async
 **You need:**
 - Basic Python knowledge (if you can write `print("Hello World")`, you're ready!)
 - Python 3.7+ installed
-- A code editor (VS Code is perfect)
+- A code editor (VS Code or Cursor is perfect)
 - Curiosity and enthusiasm! 🧠✨
 
 **Don't have these yet?** No problem! Each section includes setup help.
@@ -69,21 +69,12 @@ uvicorn main:app --reload
 ### ✨ **Real Projects, Real Skills**
 No more toy examples! Build applications people actually want to use.
 
-### 🎮 **Gamified Learning**  
-Earn badges, level up your skills, and track your progress.
-
-### 🤝 **Community Focused**
-Join thousands of learners building amazing things together.
-
-### 🧠 **Learning Science Based**
-Spaced repetition, progressive complexity, and immediate feedback.
-
 ### 💡 **AI-Ready from Day One**
 Every project prepares you for the AI revolution.
 
 ## 🏆 What You'll Build By The End
 
-By completing this tutorial, you'll have a portfolio of **7 impressive projects**:
+By completing this tutorial, you'll have a portfolio of **impressive projects**:
 
 1. **☕ Coffee Shop API** - Complete business management system
 2. **🎮 Game Character System** - Complex data relationships
@@ -103,13 +94,7 @@ We believe learning should be:
 - **🚀 Progressive** - Start simple, become unstoppable
 - **🤝 Social** - Learn with others, share your wins
 
-## 🌟 Success Stories
 
-*"I went from never hearing about APIs to building my startup's entire backend in 3 weeks!"* - Sarah, Student
-
-*"The coffee shop example finally made everything click. Now I'm the API expert at work!"* - Mike, Developer
-
-*"Building the game character system was so fun, I forgot I was learning!"* - Jessica, Career Changer
 
 ## 🚀 Ready to Start Your Adventure?
 
