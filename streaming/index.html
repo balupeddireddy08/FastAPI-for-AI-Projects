@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cosmic Rover - Mission Control</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background-color: #121a2a; color: #e0e0e0; }
+        .header { background-color: #0d121c; text-align: center; padding: 20px; border-bottom: 2px solid #334155; }
+        .header h1 { margin: 0; color: #7aa5d6; font-size: 2.5em; }
+        .header p { margin: 5px 0 0; color: #94a3b8; }
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; padding: 20px; }
+        .feature-box { background-color: #1e293b; border: 1px solid #334155; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        h2 { color: #93c5fd; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-top: 0; }
+        pre { background-color: #0d121c; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; max-height: 250px; overflow-y: auto; border: 1px solid #334155; color: #cdd6e3; font-family: 'Courier New', Courier, monospace;}
+        button { background-color: #3b82f6; color: white; border: none; padding: 12px 18px; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.2s; }
+        button:hover { background-color: #2563eb; }
+        button:disabled { background-color: #475569; cursor: not-allowed; }
+        input[type="text"], input[type="file"], select { width: calc(100% - 24px); padding: 10px; border-radius: 5px; border: 1px solid #334155; background-color: #334155; color: #e0e0e0; margin-bottom: 10px; }
+        .chat-controls { display: flex; gap: 10px; }
+        .chat-controls select { flex-grow: 1; }
+        .chat-controls input { flex-grow: 2; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛰️ Cosmic Rover - Mission Control</h1>
+        <p>Live Data & Communication Terminal</p>
+    </div>
+
+    <div class="container">
+        <!-- Feature 1: Streaming Image -->
+        <div class="feature-box">
+            <h2>1. Rover Image Feed (StreamingResponse)</h2>
+            <p>Stream a high-resolution image from the rover, piece by piece, to avoid memory overload.</p>
+            <button onclick="streamImage()">Request Image Chunks</button>
+            <pre id="image-stream-output">Image data will appear here...</pre>
+        </div>
+
+        <!-- Feature 2: SSE Telemetry -->
+        <div class="feature-box">
+            <h2>2. Live Telemetry (Server-Sent Events)</h2>
+            <p>Receive a continuous, one-way feed of the rover's vital stats from the server.</p>
+            <button id="sse-btn" onclick="toggleSseTelemetry()">Start Telemetry Feed</button>
+            <pre id="sse-telemetry-output">Awaiting telemetry data...</pre>
+        </div>
+
+        <!-- Feature 3: WebSocket Comms -->
+        <div class="feature-box">
+            <h2>3. Mission Comms (WebSocket Rooms)</h2>
+            <p>Join a secure, two-way communication channel for different mission teams.</p>
+            <div class="chat-controls">
+                <select id="team-channel">
+                    <option value="science">Science Team</option>
+                    <option value="engineering">Engineering Team</option>
+                    <option value="public-relations">Public Relations</option>
+                </select>
+                <button id="ws-connect-btn" onclick="connectToComms()">Join Channel</button>
+            </div>
+            <pre id="chat-output">Comms channel is offline.</pre>
+            <div class="chat-controls" style="margin-top:10px;">
+                <input type="text" id="chat-message" placeholder="Type message..." disabled/>
+                <button id="ws-send-btn" onclick="sendMessage()" disabled>Send</button>
+            </div>
+        </div>
+
+        <!-- Feature 4: Upload with Progress -->
+        <div class="feature-box">
+            <h2>4. Upload Command Sequence (Streaming Progress)</h2>
+            <p>Upload a new command sequence to the rover and monitor its validation progress in real-time.</p>
+            <input type="file" id="file-upload" />
+            <button onclick="uploadCommands()">Upload & Validate Sequence</button>
+            <pre id="upload-progress-output">Awaiting command sequence upload...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Feature 1: Image Streaming
+        async function streamImage() {
+            const output = document.getElementById('image-stream-output');
+            output.textContent = 'Requesting image transmission...\n';
+            try {
+                const response = await fetch('/stream/rover-image');
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) {
+                        output.textContent += '\n--- Image Transmission Complete ---';
+                        break;
+                    }
+                    output.textContent += decoder.decode(value, {stream: true});
+                }
+            } catch (error) {
+                output.textContent += '\nError receiving image data.';
+            }
+        }
+
+        // Feature 2: SSE Telemetry
+        let sseConnection = null;
+        function toggleSseTelemetry() {
+            const button = document.getElementById('sse-btn');
+            const output = document.getElementById('sse-telemetry-output');
+            if (sseConnection) {
+                sseConnection.close();
+                sseConnection = null;
+                button.textContent = 'Start Telemetry Feed';
+                output.textContent = 'Telemetry feed stopped.';
+            } else {
+                output.textContent = 'Connecting to telemetry feed...\n';
+                sseConnection = new EventSource('/stream/rover-telemetry');
+                sseConnection.onmessage = function(event) {
+                    const data = JSON.parse(event.data);
+                    output.textContent = `Timestamp: ${data.timestamp}\n\n` +
+                                       `Location: (${data.location.x.toFixed(4)}, ${data.location.y.toFixed(4)})\n` +
+                                       `Battery: ${data.battery_level}%\n` +
+                                       `Signal Strength: ${data.signal_strength} dBm`;
+                };
+                sseConnection.onerror = function() {
+                    output.textContent += '\nConnection lost. Feed terminated.';
+                    sseConnection.close();
+                    button.textContent = 'Start Telemetry Feed';
+                    sseConnection = null;
+                }
+                button.textContent = 'Stop Telemetry Feed';
+            }
+        }
+
+        // Feature 3: WebSocket Comms
+        let wsConnection = null;
+        function connectToComms() {
+            if (wsConnection) { wsConnection.close(); }
+            const team = document.getElementById('team-channel').value;
+            const output = document.getElementById('chat-output');
+            const messageInput = document.getElementById('chat-message');
+            const sendButton = document.getElementById('ws-send-btn');
+            
+            output.textContent = `Connecting to ${team} channel...\n`;
+            
+            wsConnection = new WebSocket(`ws://${window.location.host}/ws/comms/${team}`);
+
+            wsConnection.onopen = () => {
+                output.textContent += 'Connection established.\n';
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+            };
+
+            wsConnection.onmessage = (event) => {
+                output.textContent += `${event.data}\n`;
+                output.scrollTop = output.scrollHeight;
+            };
+
+            wsConnection.onclose = () => {
+                output.textContent += '\nDisconnected from comms channel.';
+                messageInput.disabled = true;
+                sendButton.disabled = true;
+                wsConnection = null;
+            };
+
+            wsConnection.onerror = () => {
+                output.textContent += '\nError in comms channel.';
+            };
+        }
+        function sendMessage() {
+            const input = document.getElementById('chat-message');
+            if (input.value && wsConnection) {
+                wsConnection.send(input.value);
+                input.value = '';
+            }
+        }
+
+        // Feature 4: Upload Progress
+        async function uploadCommands() {
+            const fileInput = document.getElementById('file-upload');
+            if (!fileInput.files.length) {
+                alert('Please select a command sequence file first!');
+                return;
+            }
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const output = document.getElementById('upload-progress-output');
+            output.textContent = 'Uploading command sequence...\n';
+
+            try {
+                const response = await fetch('/upload/rover-commands', { method: 'POST', body: formData });
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    // SSE format sends "data: <json>\n\n". We need to parse this.
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n');
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const jsonData = line.substring(6);
+                            if (jsonData.trim()) {
+                                const data = JSON.parse(jsonData);
+                                output.textContent += `[${data.status}] ${data.detail}\n`;
+                            }
+                        }
+                    }
+                }
+                 output.textContent += '\n--- Validation Complete ---';
+            } catch (error) {
+                output.textContent += '\nError during upload or validation.';
+            }
+        }
+    </script>
+</body>
+</html> 
