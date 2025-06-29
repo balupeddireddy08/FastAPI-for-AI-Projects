@@ -11,7 +11,8 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
+import aiofiles
 
 # --- App Setup ---
 # This creates our main application, with a clear title and description
@@ -42,22 +43,17 @@ app = FastAPI(
 @app.get("/stream/rover-image")
 async def stream_rover_image():
     """
-    Streams a simulated high-resolution image from the rover chunk by chunk.
+    Streams a real image from the local filesystem chunk by chunk.
     """
     # An 'async generator' function that yields data pieces.
     async def image_chunk_generator():
-        # Simulate an image being sent in 10 parts.
-        for i in range(10):
-            # Each chunk is a piece of the image data. In a real scenario,
-            # this would be raw bytes from a file.
-            image_piece = f"[Chunk {i+1}/10: data.....]\n"
-            yield image_piece.encode("utf-8")
-            # Wait a little, simulating network latency from space.
-            await asyncio.sleep(0.2)
-
-    # We return a StreamingResponse, passing our generator to it.
-    # The `media_type` tells the browser how to interpret the data.
-    return StreamingResponse(image_chunk_generator(), media_type="text/plain")
+        # Using aiofiles to read the file asynchronously to prevent blocking.
+        async with aiofiles.open("rover_image.jpg", mode="rb") as f:
+            while chunk := await f.read(4096):  # Read in 4KB chunks
+                yield chunk
+    
+    # The media type is now 'image/jpeg' to tell the browser how to handle the data.
+    return StreamingResponse(image_chunk_generator(), media_type="image/jpeg")
 
 
 # ===================================================================================
@@ -97,7 +93,7 @@ async def stream_rover_telemetry():
             yield f"data: {json.dumps(telemetry_data)}\n\n"
             # Send an update every two seconds.
             await asyncio.sleep(2)
-
+    
     return StreamingResponse(telemetry_generator(), media_type="text/event-stream")
 
 
@@ -198,13 +194,18 @@ async def upload_rover_commands(file: UploadFile = File(...)):
 
 
 # ===================================================================================
-# Demo HTML Page
+# Demo HTML Page & File Download
 # ===================================================================================
+@app.get("/download/rover-commands")
+def download_rover_commands():
+    """Provides the sample command file for download."""
+    return FileResponse("rover_commands.txt", media_type="text/plain", filename="rover_commands.txt")
+
 @app.get("/", response_class=HTMLResponse)
 def get_mission_control_dashboard():
     """Serves the main Mission Control HTML page."""
     try:
-        with open("streaming/index.html", "r", encoding="utf-8") as f:
+        with open("index.html", "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     except FileNotFoundError:
         return HTMLResponse("<h1>Error: index.html not found</h1>")

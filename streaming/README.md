@@ -16,20 +16,25 @@ This section provides a focused, easy-to-understand example of advanced streamin
 ### 1. Streaming Response: The Rover Image Feed
 
 -   **Analogy**: Sending a giant poster through a tiny mail slot. Instead of trying to shove the whole thing through at once (which would fail), you cut it into small, numbered puzzle pieces and send them one by one. The receiver assembles them on the other side.
--   **Concept**: `StreamingResponse` allows you to send data in chunks. This is ideal for large files (like images or videos) because the server doesn't need to load the entire file into memory. It reads and sends one chunk at a time, keeping memory usage low and starting the transmission almost instantly.
--   **Code Explanation**: The `/stream/rover-image` endpoint uses an `async` generator function (`image_chunk_generator`) that `yield`s small pieces of a simulated image file. Each piece is sent to the client as soon as it's ready.
+-   **Concept**: `StreamingResponse` is ideal for large files (like images or videos). Instead of loading the entire file into memory, the server reads and sends it in small chunks. This keeps memory usage low and starts the transmission to the user almost instantly.
+-   **Code Explanation**: The `/stream/rover-image` endpoint uses `aiofiles` to asynchronously read an actual image file (`rover_image.jpg`) from the disk. It reads the file in small 4KB chunks and `yield`s the raw bytes. The `Content-Type` header is set to `image/jpeg` so the browser knows how to handle the data.
 
     ```python
     @app.get("/stream/rover-image")
     async def stream_rover_image():
-        """Streams a simulated high-resolution image from the rover chunk by chunk."""
+        """Streams a real image from the local filesystem chunk by chunk."""
         async def image_chunk_generator():
-            for i in range(10):
-                image_piece = f"[Chunk {i+1}/10: data.....]\n"
-                yield image_piece.encode("utf-8")
-                await asyncio.sleep(0.2)
-        return StreamingResponse(image_chunk_generator(), media_type="text/plain")
+            async with aiofiles.open("rover_image.jpg", mode="rb") as f:
+                while chunk := await f.read(4096):
+                    yield chunk
+        return StreamingResponse(image_chunk_generator(), media_type="image/jpeg")
     ```
+
+    - **Terminal (`curl`) Example**:
+        ```bash
+        # This will stream the raw image data to a new file named 'received_image.jpg'
+        curl http://localhost:8000/stream/rover-image -o received_image.jpg
+        ```
 
 ### 2. Server-Sent Events (SSE): The Live Telemetry Feed
 
@@ -48,6 +53,12 @@ This section provides a focused, easy-to-understand example of advanced streamin
                 await asyncio.sleep(2)
         return StreamingResponse(telemetry_generator(), media_type="text/event-stream")
     ```
+
+    - **Terminal (`curl`) Example**:
+        ```bash
+        # The -N or --no-buffer flag is important to see messages as they arrive.
+        curl -N http://localhost:8000/stream/rover-telemetry
+        ```
 
 ### 3. WebSockets: Mission Control Comms Channels
 
@@ -72,6 +83,14 @@ This section provides a focused, easy-to-understand example of advanced streamin
             manager.disconnect(websocket, team_channel)
     ```
 
+    - **Terminal (`wscat`) Example**:
+        ```bash
+        # curl cannot handle WebSockets. You can use a tool like wscat.
+        # First, install it: npm install -g wscat
+        # Then connect to a channel:
+        wscat -c ws://localhost:8000/ws/comms/science
+        ```
+
 ### 4. Upload with Progress: Validating Command Sequences
 
 -   **Analogy**: Ordering a custom-built computer online. After you submit your order (upload the file), the website doesn't just go silent. It gives you live updates on a timeline: "Components Received," "Assembly in Progress," "Quality Testing," and finally "Shipped."
@@ -92,16 +111,32 @@ This section provides a focused, easy-to-understand example of advanced streamin
         return StreamingResponse(progress_generator(), media_type="text/event-stream")
     ```
 
+    - **Terminal (`curl`) Example**:
+        ```bash
+        # First, download the sample command file from the UI or create your own.
+        # Then, from the 'streaming' directory, run this command.
+        curl -X POST -F "file=@./rover_commands.txt" http://localhost:8000/upload/rover-commands
+        ```
+
 ---
 
 ## 🛠️ How to Run the Demo
 
-1.  Make sure you have the required packages installed:
+1.  Make sure you have the required packages installed. It's recommended to use the specific Python version (e.g., 3.11) that your project uses.
     ```bash
+    # Use the pip associated with your project's python interpreter
+    # e.g., py -3.11 -m pip install ...
+
     pip install "fastapi[all]"
+    pip install aiofiles
+    pip install requests
     ```
-2.  From the **project root directory**, run the Uvicorn server:
+2.  Navigate into the streaming directory:
     ```bash
-    uvicorn streaming.main:app --reload
+    cd streaming
     ```
-3.  Open your browser and navigate to [http://localhost:8000](http://localhost:8000) to see the Mission Control dashboard in action. 
+3.  From **inside the `streaming` directory**, run the Uvicorn server:
+    ```bash
+    uvicorn main:app --reload
+    ```
+4.  Open your browser and navigate to [http://localhost:8000](http://localhost:8000) to see the Mission Control dashboard in action. 

@@ -35,6 +35,7 @@
             <p>Stream a high-resolution image from the rover, piece by piece, to avoid memory overload.</p>
             <button onclick="streamImage()">Request Image Chunks</button>
             <pre id="image-stream-output">Image data will appear here...</pre>
+            <div id="image-display" style="margin-top: 15px;"></div>
         </div>
 
         <!-- Feature 2: SSE Telemetry -->
@@ -67,7 +68,9 @@
         <!-- Feature 4: Upload with Progress -->
         <div class="feature-box">
             <h2>4. Upload Command Sequence (Streaming Progress)</h2>
-            <p>Upload a new command sequence to the rover and monitor its validation progress in real-time.</p>
+            <p>Upload a new command sequence to the rover and monitor its validation progress in real-time. 
+                <a href="/download/rover-commands" download="rover_commands.txt" style="color: #93c5fd;">Download sample file.</a>
+            </p>
             <input type="file" id="file-upload" />
             <button onclick="uploadCommands()">Upload & Validate Sequence</button>
             <pre id="upload-progress-output">Awaiting command sequence upload...</pre>
@@ -78,21 +81,40 @@
         // Feature 1: Image Streaming
         async function streamImage() {
             const output = document.getElementById('image-stream-output');
+            const imageDisplay = document.getElementById('image-display');
             output.textContent = 'Requesting image transmission...\n';
+            imageDisplay.innerHTML = ''; // Clear previous image
+
             try {
                 const response = await fetch('/stream/rover-image');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const reader = response.body.getReader();
-                const decoder = new TextDecoder();
+                const chunks = []; // array of received binary chunks
+
+                output.textContent += 'Receiving data...\n';
+
                 while (true) {
                     const { done, value } = await reader.read();
-                    if (done) {
-                        output.textContent += '\n--- Image Transmission Complete ---';
-                        break;
-                    }
-                    output.textContent += decoder.decode(value, {stream: true});
+                    if (done) break;
+                    chunks.push(value);
+                    output.textContent += `Received chunk of ${value.length} bytes...\n`;
                 }
+
+                output.textContent += '--- Image Transmission Complete ---';
+                
+                const blob = new Blob(chunks, { type: 'image/jpeg' });
+                const imageUrl = URL.createObjectURL(blob);
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.style.maxWidth = '100%';
+                img.style.borderRadius = '5px';
+                imageDisplay.appendChild(img);
+
             } catch (error) {
-                output.textContent += '\nError receiving image data.';
+                output.textContent += `\nError receiving image data: ${error}`;
             }
         }
 
