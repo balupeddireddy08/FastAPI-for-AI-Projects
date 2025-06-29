@@ -1,125 +1,172 @@
 import asyncio
 import json
+import random
 from datetime import datetime
-from typing import List
+from typing import List, Dict
 
-from fastapi import (FastAPI, BackgroundTasks, WebSocket,
-                     WebSocketDisconnect)
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi import (
+    FastAPI,
+    BackgroundTasks,
+    WebSocket,
+    WebSocketDisconnect,
+)
+from fastapi.responses import FileResponse, StreamingResponse
 
+# --- App Setup ---
+# This creates the main FastAPI application instance.
+# Think of this as the central kitchen for our food delivery service.
 app = FastAPI(
-    title="🚀 FastAPI Async Features Demo",
-    description="A simple app to demonstrate key asynchronous features of FastAPI.",
-    version="1.0.0",
+    title="🚀 Food Delivery App - FastAPI Async Showcase",
+    description="A cohesive example using a Food Delivery App to demonstrate async features.",
+    version="2.0.0",
 )
 
-# =================================================================
-# 1. Basic Async Endpoint
-# =================================================================
+# --- In-Memory 'Database' & State ---
+# Simple Python dictionaries to act as a temporary database for our demo.
+# In a real app, this would be a proper database like PostgreSQL.
+fake_db = {
+    "restaurants": {
+        "resto_123": {"name": "The Spicy Spoon", "cuisine": "Indian"},
+    },
+    "orders": {},
+}
+# A manager for WebSocket chat rooms will be created below, with the WebSocket code.
 
 
-@app.get("/async-sleep")
-async def basic_async_sleep():
+# ===================================================================================
+# FEATURE 1: Basic Async/Await Endpoint (The Skilled Waiter)
+# ===================================================================================
+# ANALOGY: A skilled waiter takes your order, gives it to the kitchen, and immediately
+# serves other tables. They don't stand around waiting for your food. This `async`
+# function is like that waiter—it efficiently handles requests without blocking.
+
+@app.get("/restaurants/{restaurant_id}")
+async def get_restaurant_info(restaurant_id: str):
     """
-    Demonstrates a basic async endpoint.
-    This endpoint simulates a slow network call that takes 1 second.
-    FastAPI can handle other requests while waiting for this to complete.
+    A basic async endpoint to fetch restaurant details.
+    Simulates a non-blocking database call.
     """
+    print(f"Fetching details for restaurant {restaurant_id}...")
+    # `await asyncio.sleep(0.5)` simulates a database query.
+    # While "waiting", the server can handle other requests.
+    await asyncio.sleep(0.5)
+    return fake_db["restaurants"].get(restaurant_id, {"error": "Restaurant not found"})
+
+
+# ===================================================================================
+# FEATURE 2: Concurrent Tasks (Ordering Coffee & A Sandwich)
+# ===================================================================================
+# ANALOGY: You order a coffee (2 mins) and a sandwich (3 mins) at the same time. You get
+# everything in 3 minutes, not 5. `asyncio.gather` does this for I/O tasks, running
+# them all at once to save a significant amount of time.
+
+async def fetch_menu(restaurant_id: str):
+    """Simulates fetching the menu from a database (takes 1 second)."""
+    print(f"Fetching menu for {restaurant_id}...")
     await asyncio.sleep(1)
-    return {"message": "Slept for 1 second!"}
+    return {"menu": ["Curry", "Naan", "Samosa"]}
 
-
-# =================================================================
-# 2. Concurrent Tasks with asyncio.gather
-# =================================================================
-
-
-async def fetch_data_from_service_one():
-    """Simulates fetching data from a slow external service."""
-    print("Fetching data from service one...")
-    await asyncio.sleep(1)
-    print("Finished fetching from service one.")
-    return {"service": "one", "data": "some data"}
-
-
-async def fetch_data_from_service_two():
-    """Simulates fetching data from another slow external service."""
-    print("Fetching data from service two...")
+async def fetch_reviews(restaurant_id: str):
+    """Simulates fetching reviews from another service (takes 1.5 seconds)."""
+    print(f"Fetching reviews for {restaurant_id}...")
     await asyncio.sleep(1.5)
-    print("Finished fetching from service two.")
-    return {"service": "two", "data": "more data"}
+    return {"reviews": ["'Amazing food!'", "'A bit spicy for me.'"]}
 
-
-@app.get("/concurrent-requests")
-async def run_concurrent_requests():
+@app.get("/restaurants/{restaurant_id}/full-details")
+async def get_full_restaurant_details(restaurant_id: str):
     """
-    Demonstrates running multiple async operations concurrently.
-    Instead of waiting 1s + 1.5s = 2.5s, it will take ~1.5s (the longest task).
+    Runs two I/O-bound tasks concurrently to fetch all restaurant details.
+    Total time is ~1.5s (the longest task), not 2.5s.
     """
-    print("Starting concurrent requests.")
-    # Using asyncio.gather to run tasks concurrently
-    results = await asyncio.gather(
-        fetch_data_from_service_one(),
-        fetch_data_from_service_two()
-    )
-    print("Finished concurrent requests.")
-    return {"results": results}
+    print(f"Fetching full details for restaurant {restaurant_id}...")
+    # We start both tasks and then use `gather` to wait for both to complete.
+    menu_task = fetch_menu(restaurant_id)
+    reviews_task = fetch_reviews(restaurant_id)
+    # `await` here waits for both tasks to finish.
+    menu, reviews = await asyncio.gather(menu_task, reviews_task)
+    return {"info": fake_db["restaurants"].get(restaurant_id), **menu, **reviews}
 
 
-# =================================================================
-# 3. Background Tasks
-# =================================================================
+# ===================================================================================
+# FEATURE 3: Background Tasks (The Online Shopping Experience)
+# ===================================================================================
+# ANALOGY: You place an order online and instantly get an "Order Confirmed" message.
+# The company handles payment processing and shipping later, in the background.
+# You don't have to wait. That's what `BackgroundTasks` does.
 
-
-async def write_log_file(message: str):
-    """A slow I/O operation to run in the background."""
-    print(f"Background task: Starting to write log '{message}'")
-    await asyncio.sleep(3)  # Simulate slow file write
-    with open("app.log", "a") as log_file:
-        log_file.write(f"{datetime.now()}: {message}\n")
-    print("Background task: Finished writing log.")
-
-
-@app.post("/send-notification/")
-async def send_notification(email: str, message: str, background_tasks: BackgroundTasks):
+async def process_payment_and_notify_kitchen(order_id: str, amount: float):
     """
-    Demonstrates running a task in the background.
-    The client gets an immediate response, and the server continues
-    processing the `write_log_file` function.
+    A background task that simulates processing a payment and notifying the kitchen.
+    This runs *after* the user gets their response.
     """
-    background_tasks.add_task(
-        write_log_file, f"Notification sent to {email}: {message}")
-    return {"message": "Notification is being sent in the background"}
+    print(f"BACKGROUND: Processing payment for order {order_id}...")
+    await asyncio.sleep(2)  # Simulate payment gateway
+    print(f"BACKGROUND: Payment of ${amount} for order {order_id} successful.")
+    fake_db["orders"][order_id]["payment_status"] = "paid"
+    print(f"BACKGROUND: Notifying kitchen for order {order_id}...")
+    await asyncio.sleep(1) # Simulate sending order to kitchen's system
+    print(f"BACKGROUND: Kitchen Acknowledged order {order_id}.")
+    fake_db["orders"][order_id]["kitchen_status"] = "acknowledged"
 
-
-# =================================================================
-# 4. Streaming Response (Server-Sent Events)
-# =================================================================
-
-
-@app.get("/stream-time")
-async def stream_time():
+@app.post("/order")
+async def place_order(restaurant_id: str, item: str, background_tasks: BackgroundTasks):
     """
-    Demonstrates streaming data from the server to the client (Server-Sent Events).
-    The connection stays open, and the server sends an update every second.
+    Places an order and schedules payment/kitchen notification to run in the background.
+    The user gets an immediate response.
     """
-    async def time_generator():
-        while True:
-            time_str = datetime.now().strftime("%H:%M:%S")
-            event_data = {"time": time_str}
-            # The data must be in a specific format for SSE
-            yield f"data: {json.dumps(event_data)}\n\n"
-            await asyncio.sleep(1)
+    order_id = f"order_{random.randint(1000, 9999)}"
+    order_details = {
+        "id": order_id,
+        "item": item,
+        "status": "order_placed",
+        "restaurant": restaurant_id,
+    }
+    fake_db["orders"][order_id] = order_details
+    # This is the "fire-and-forget" part. The user won't wait for this to finish.
+    background_tasks.add_task(process_payment_and_notify_kitchen, order_id, 15.50)
+    return {"message": "Order placed successfully!", "order_id": order_id}
 
-    return StreamingResponse(time_generator(), media_type="text/event-stream")
+
+# ===================================================================================
+# FEATURE 4: Streaming Responses (The Live News Ticker / Order Tracker)
+# ===================================================================================
+# ANALOGY: A live order tracker page. The server continuously pushes updates to your
+# phone (e.g., "Preparing" -> "Out for Delivery"). It's a one-way stream of information.
+# This is perfect for Server-Sent Events (SSE).
+
+@app.get("/order/{order_id}/live-status", response_class=StreamingResponse)
+async def stream_order_status(order_id: str):
+    """
+    Streams the live status of an order using Server-Sent Events (SSE).
+    """
+    async def event_generator():
+        # A sequence of possible order statuses.
+        statuses = ["preparing_food", "quality_check", "out_for_delivery", "delivered"]
+        for status in statuses:
+            # Update the order status in our fake DB.
+            if order_id in fake_db["orders"]:
+                fake_db["orders"][order_id]["status"] = status
+                event_data = {
+                    "order_id": order_id,
+                    "status": status,
+                    "timestamp": datetime.now().isoformat()
+                }
+                # `yield` sends a data chunk. SSE format is "data: {json}\n\n".
+                yield f"data: {json.dumps(event_data)}\n\n"
+                # Wait for a random time before the next status update.
+                await asyncio.sleep(random.uniform(2, 4))
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 
-# =================================================================
-# 5. WebSocket for Real-time Communication
-# =================================================================
-
+# ===================================================================================
+# FEATURE 5: WebSockets (The Phone Call / Support Chat)
+# ===================================================================================
+# ANALOGY: A phone call with your delivery driver. Both of you can speak and listen
+# at any time. This real-time, two-way communication is exactly what WebSockets are for.
 
 class ConnectionManager:
+    """Manages WebSocket connections for a single chat room."""
     def __init__(self):
         self.active_connections: List[WebSocket] = []
 
@@ -134,63 +181,32 @@ class ConnectionManager:
         for connection in self.active_connections:
             await connection.send_text(message)
 
-
+# We create one global manager for our single, mock chat room.
 manager = ConnectionManager()
 
-
-@app.websocket("/ws/chat")
-async def websocket_chat_endpoint(websocket: WebSocket):
-    """
-    Demonstrates a real-time chat using WebSockets.
-    Multiple clients can connect, and messages are broadcast to everyone.
-    """
+@app.websocket("/ws/support-chat")
+async def websocket_support_chat(websocket: WebSocket):
+    """A simplified WebSocket endpoint for a mock support chat."""
     await manager.connect(websocket)
-    await manager.broadcast("A new user has joined the chat.")
+    await manager.broadcast("A new user has joined the mock chat.")
     try:
         while True:
+            # Wait for a message from a client.
             data = await websocket.receive_text()
-            await manager.broadcast(f"A user says: {data}")
+            # Broadcast the message to everyone in the chat room.
+            await manager.broadcast(f"Message: {data}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast("A user has left the chat.")
 
 
-@app.get("/chat-demo")
-def get_chat_demo():
-    """A simple HTML page to demonstrate the WebSocket chat."""
-    return HTMLResponse("""
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Chat</title>
-        </head>
-        <body>
-            <h1>WebSocket Chat</h1>
-            <ul id='messages'>
-            </ul>
-            <form onsubmit="sendMessage(event)">
-                <input type="text" id="messageText" autocomplete="off"/>
-                <button>Send</button>
-            </form>
-            <script>
-                var ws = new WebSocket("ws://localhost:8000/ws/chat");
-                ws.onmessage = function(event) {
-                    var messages = document.getElementById('messages')
-                    var message = document.createElement('li')
-                    var content = document.createTextNode(event.data)
-                    message.appendChild(content)
-                    messages.appendChild(message)
-                };
-                function sendMessage(event) {
-                    var input = document.getElementById("messageText")
-                    ws.send(input.value)
-                    input.value = ''
-                    event.preventDefault()
-                }
-            </script>
-        </body>
-    </html>
-    """)
+# ===================================================================================
+# Demo HTML Page
+# ===================================================================================
+@app.get("/", response_class=FileResponse)
+def read_index():
+    """Serves the main HTML page for the demo."""
+    return "index.html"
 
 # To run this file:
 # 1. Make sure you have fastapi and uvicorn installed:

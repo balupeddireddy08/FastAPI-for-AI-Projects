@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Food Delivery App - Async Demo</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .container { max-width: 900px; margin: auto; }
+        .feature { background-color: #fff; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        h1, h2 { color: #333; }
+        pre { background-color: #e9ecef; padding: 15px; border-radius: 5px; }
+        button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #order-status { font-weight: bold; font-size: 1.2em; }
+        #chat-messages { list-style-type: none; padding: 0; height: 150px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; border-radius: 5px; margin-bottom: 10px;}
+        #chat-messages li { margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍔 Food Delivery App - Async Demo</h1>
+
+        <div class="feature">
+            <h2>1. Place an Order (Background Task)</h2>
+            <p>Click to place an order. You'll get an immediate response, but the payment processing will run in the background (check your terminal).</p>
+            <button onclick="placeOrder()">Place Order for a Spicy Curry</button>
+            <p><b>Order ID:</b> <span id="orderId"></span></p>
+        </div>
+
+        <div class="feature">
+            <h2>2. Live Order Tracker (Server-Sent Events)</h2>
+            <p>Once you place an order, its live status will be pushed from the server below.</p>
+            <pre><b>Current Status:</b> <span id="order-status">Waiting for order...</span></pre>
+        </div>
+
+        <div class="feature">
+            <h2>3. Live Support Chat (WebSocket)</h2>
+            <p>Once an order is placed, you can chat with support in real-time.</p>
+            <ul id="chat-messages"></ul>
+            <form id="chat-form" onsubmit="sendMessage(event)">
+                <input type="text" id="messageText" autocomplete="off" placeholder="Type a message..." style="width: 75%; padding: 8px;" disabled/>
+                <button type="submit" disabled>Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentOrderId = null;
+        let sse_connection = null;
+        let ws_connection = null;
+
+        async function placeOrder() {
+            const response = await fetch('/order?restaurant_id=resto_123&item=Spicy_Curry', { method: 'POST' });
+            const data = await response.json();
+            currentOrderId = data.order_id;
+            document.getElementById('orderId').textContent = currentOrderId;
+            alert(data.message);
+            
+            // Start listening for live status updates
+            setupSSE();
+            // Enable the support chat
+            setupWebSocket();
+        }
+
+        function setupSSE() {
+            if (sse_connection) sse_connection.close(); // Close previous connection
+            
+            const orderStatusElement = document.getElementById('order-status');
+            sse_connection = new EventSource(`/order/${currentOrderId}/live-status`);
+            
+            sse_connection.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                orderStatusElement.textContent = `${data.status.replace(/_/g, ' ')} at ${new Date(data.timestamp).toLocaleTimeString()}`;
+            };
+            sse_connection.onerror = function() {
+                orderStatusElement.textContent = "Connection lost. Please refresh.";
+                sse_connection.close();
+            }
+        }
+        
+        function setupWebSocket() {
+            if(ws_connection) ws_connection.close();
+
+            const chatForm = document.getElementById('chat-form');
+            const messageInput = document.getElementById('messageText');
+            const sendButton = chatForm.querySelector('button');
+            const messages = document.getElementById('chat-messages');
+
+            // Clear previous chat messages for the new mock chat session
+            messages.innerHTML = '';
+
+            messageInput.disabled = false;
+            sendButton.disabled = false;
+            
+            // Connect to the new, simplified WebSocket URL (no order ID needed)
+            ws_connection = new WebSocket(`ws://${window.location.host}/ws/support-chat`);
+            
+            ws_connection.onopen = function() {
+                const message = document.createElement('li');
+                message.textContent = 'Connected to mock support chat!';
+                message.style.fontStyle = 'italic';
+                messages.appendChild(message);
+            };
+
+            ws_connection.onmessage = function(event) {
+                const messages = document.getElementById('chat-messages');
+                const message = document.createElement('li');
+                message.appendChild(document.createTextNode(event.data));
+                messages.appendChild(message);
+                messages.scrollTop = messages.scrollHeight;
+            };
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById("messageText");
+            if (input.value && ws_connection) {
+                ws_connection.send(input.value);
+                input.value = '';
+            }
+        }
+    </script>
+</body>
+</html> 
