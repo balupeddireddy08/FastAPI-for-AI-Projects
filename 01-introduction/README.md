@@ -1,6 +1,6 @@
 # ☕ Section 1: FastAPI Introduction - Brew Master Coffee Shop
 
-Welcome to **FastAPI**! We'll learn the fundamentals by building a coffee shop management API that handles orders, menu items, and customer recommendations.
+Welcome to **FastAPI**! We'll learn the fundamentals by building a coffee shop management API that handles orders, menu items, and price calculations.
 
 ## 🎯 What You'll Learn
 
@@ -8,7 +8,7 @@ Welcome to **FastAPI**! We'll learn the fundamentals by building a coffee shop m
 - Basic routing with path and query parameters
 - Automatic API documentation generation
 - HTTP methods and response handling
-- Error handling and data validation basics
+- Error handling basics
 
 ## ☕ Meet Brew Master Coffee Shop
 
@@ -16,7 +16,6 @@ Our coffee shop API demonstrates core FastAPI concepts through familiar business
 
 **Key Features:**
 - 📋 Menu browsing and coffee details
-- 🔍 Smart coffee recommendations by mood
 - 💰 Price calculations with tips
 - 📊 Basic business analytics
 
@@ -43,30 +42,37 @@ app = FastAPI(
 def welcome_to_coffee_shop():
     return {
         "message": "☕ Welcome to Brew Master Coffee Shop!",
-        "todays_special": "Vanilla Latte with extra foam"
+        "todays_special": "Vanilla Latte with extra foam",
+        "available_coffees": [
+            # ...truncated for brevity, see main.py for full list
+            {"id": 1, "name": "Espresso", "price": 2.50, "caffeine_level": "High"},
+            {"id": 2, "name": "Cappuccino", "price": 4.00, "caffeine_level": "Medium"}
+        ]
     }
 
 # Path parameters
 @app.get("/menu/coffee/{coffee_id}")
 def get_coffee_by_id(coffee_id: int):
     coffee_menu = {
-        1: {"name": "Espresso", "price": 2.50},
-        2: {"name": "Latte", "price": 4.50}
+        1: {"name": "Espresso", "price": 2.50, "caffeine_level": "High"},
+        2: {"name": "Cappuccino", "price": 4.00, "caffeine_level": "Medium"},
+        3: {"name": "Latte", "price": 4.50, "caffeine_level": "Medium"},
+        4: {"name": "Americano", "price": 3.00, "caffeine_level": "High"},
+        5: {"name": "Frappuccino", "price": 5.50, "caffeine_level": "Low"}
     }
     return coffee_menu.get(coffee_id, {"error": "Coffee not found!"})
 ```
 
-### 3. **Query Parameters**
+### 3. **Query Parameters in Action**
+
+Query parameters allow flexible data filtering and optional inputs, like `tip_percentage` in our coffee calculator:
 
 ```python
-@app.get("/menu/search/")
-def search_coffee_menu(
-    mood: str = None, 
-    max_price: float = 10.0, 
-    caffeine_level: str = None
-):
-    # Filter coffee based on parameters
-    return {"recommendations": filtered_coffees}
+@app.get("/calculate/total/{coffee_price}")
+def calculate_coffee_total(coffee_price: float, tip_percentage: int = 15):
+    """Calculate total cost of your coffee including tip."""
+    # ... (see main.py for full implementation)
+    return {"total_cost": coffee_price * (1 + tip_percentage / 100)}
 ```
 
 ## 🛠️ Running Your Coffee Shop
@@ -85,10 +91,9 @@ uvicorn main:app --reload
 
 ## 🎮 Try These Endpoints
 
-1. **Welcome Page**: `GET /`
-2. **Get Coffee**: `GET /menu/coffee/1`
-3. **Search Menu**: `GET /menu/search/?mood=tired&caffeine_level=high`
-4. **Calculate Total**: `GET /calculate/total/4.50?tip_percentage=20`
+1.  **Welcome Page (Full Menu)**: `GET /`
+2.  **Get Specific Coffee**: `GET /menu/coffee/1`
+3.  **Calculate Total with Tip**: `GET /calculate/total/4.50?tip_percentage=20`
 
 ## 🔥 Key FastAPI Features
 
@@ -96,7 +101,7 @@ uvicorn main:app --reload
 FastAPI generates interactive API docs automatically from your code. No extra work needed!
 
 ### **Type Safety**
-Path parameters are automatically converted to the correct types:
+Path and query parameters are automatically converted to the correct types:
 ```python
 @app.get("/coffee/{coffee_id}")
 def get_coffee(coffee_id: int):  # Automatically converts to integer
@@ -104,16 +109,14 @@ def get_coffee(coffee_id: int):  # Automatically converts to integer
 ```
 
 ### **Data Validation**
-Invalid inputs return clear error messages automatically.
+Invalid inputs (like negative prices) return clear error messages automatically.
 
 ## 🏋️‍♀️ Practice Challenge
 
 Extend your coffee shop with these features:
 
-1. **☕ Full Menu Endpoint**: `GET /menu` - Return all available coffees
-2. **⭐ Rating System**: `GET /rate/{coffee_id}/{rating}` - Rate coffees 1-5 stars  
-3. **🔍 Advanced Search**: Add filters for size, temperature, dairy-free options
-4. **💰 Daily Sales**: `GET /sales/today` - Mock daily revenue calculation
+1.  **🏷️ Filter by Caffeine Level**: Add an endpoint `GET /menu/caffeine/{level}` to filter coffees by their caffeine level (e.g., "High", "Medium", "Low").
+2.  **🌟 Customer Feedback**: Add a `POST /feedback` endpoint to receive customer comments and ratings for their experience.
 
 ## 💡 What's Next?
 
