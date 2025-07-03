@@ -19,6 +19,30 @@ Our coffee shop API demonstrates core FastAPI concepts through familiar business
 - 💰 Price calculations with tips
 - 📊 Basic business analytics
 
+## 📊 FastAPI Application Flow
+
+```mermaid
+graph TD
+    A[Client] -->|HTTP Request| B[FastAPI App]
+    B -->|HTTP Response| A
+    
+    subgraph "FastAPI Application"
+    B --> C[Route Handlers]
+    C -->|Path Parameters| D["GET /menu/coffee/{coffee_id}"]
+    C -->|Query Parameters| E["GET /calculate/total/{coffee_price}?tip_percentage=15"]
+    C -->|Simple Route| F["GET /"]
+    end
+    
+    subgraph "Automatic Features"
+    B --> G[Data Validation]
+    B --> H[Type Conversion]
+    B --> I[API Documentation]
+    end
+    
+    I --> J[Swagger UI /docs]
+    I --> K[ReDoc /redoc]
+```
+
 ## 🚀 Core FastAPI Concepts
 
 ### 1. **FastAPI Application Setup**
@@ -74,6 +98,19 @@ def calculate_coffee_total(coffee_price: float, tip_percentage: int = 15):
     # ... (see main.py for full implementation)
     return {"total_cost": coffee_price * (1 + tip_percentage / 100)}
 ```
+
+## 📋 FastAPI Concepts Summary
+
+| Concept | Description | Example |
+|---------|-------------|---------|
+| **FastAPI App** | The main application instance that handles all requests | `app = FastAPI(title="Coffee Shop API")` |
+| **Path Parameters** | Variables in the URL path that identify specific resources | `/menu/coffee/{coffee_id}` |
+| **Query Parameters** | Optional parameters added to the URL after `?` | `/calculate/total/4.50?tip_percentage=20` |
+| **HTTP Methods** | Different request types for different operations | `@app.get()`, `@app.post()`, etc. |
+| **Response Models** | Define the structure of API responses | `return {"message": "Welcome", "items": [...]}` |
+| **Automatic Docs** | Self-generated interactive API documentation | Access at `/docs` or `/redoc` |
+| **Type Conversion** | Automatic conversion of parameters to specified types | `coffee_id: int` converts string to integer |
+| **Data Validation** | Automatic validation of input data | Returns 422 error for invalid inputs |
 
 ## 🛠️ Running Your Coffee Shop
 

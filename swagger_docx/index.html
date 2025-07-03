@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 FastAPI Documentation Demo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        header {
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .tagline {
+            font-style: italic;
+            margin-top: 0.5rem;
+            color: rgba(255,255,255,0.9);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #3b82f6;
+        }
+        h2 {
+            color: #2563eb;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .links a {
+            text-decoration: none;
+            color: #2563eb;
+            font-weight: bold;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        button:disabled {
+            background-color: #b8b8b8;
+            cursor: not-allowed;
+        }
+        input, select, textarea {
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+        textarea {
+            max-width: 500px;
+            height: 100px;
+        }
+        .result {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            border-left: 4px solid #3b82f6;
+            display: none;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .api-url {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .doc-section {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .item-card {
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .item-name {
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+        .item-price {
+            font-weight: bold;
+        }
+        .item-category {
+            background-color: #e9ecef;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background-color: #e9ecef;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🚀 FastAPI Documentation Demo</h1>
+        <p class="tagline">Explore OpenAPI and Swagger UI Features</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🏠 Welcome to the FastAPI Documentation Demo!</h2>
+            <p>This interface demonstrates various documentation features in FastAPI:</p>
+            <ul>
+                <li>📝 <strong>Top-level API metadata</strong>: title, description, version</li>
+                <li>🏷️ <strong>Endpoint organization</strong> with tags</li>
+                <li>📊 <strong>Rich model documentation</strong> with Pydantic</li>
+                <li>🔍 <strong>Detailed parameter and response documentation</strong></li>
+                <li>🔒 <strong>Security scheme definitions</strong></li>
+            </ul>
+            <div class="links">
+                <a href="/docs" target="_blank">📚 API Documentation (Swagger UI)</a>
+                <a href="/redoc" target="_blank">📖 Alternative Docs (ReDoc)</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 API Overview</h2>
+            <div class="doc-section">
+                <h3>API Information</h3>
+                <p><strong>Title:</strong> 🚀 FastAPI Documentation Demo</p>
+                <p><strong>Version:</strong> 1.0.0</p>
+                <p><strong>License:</strong> MIT License</p>
+                <p><strong>Contact:</strong> API Support (support@example.com)</p>
+            </div>
+            
+            <div class="doc-section">
+                <h3>Available Servers</h3>
+                <ul>
+                    <li>Development: http://localhost:8000</li>
+                    <li>Staging: https://staging.example.com</li>
+                    <li>Production: https://api.example.com</li>
+                </ul>
+            </div>
+            
+            <div class="doc-section">
+                <h3>Tags</h3>
+                <p><strong>General:</strong> General-purpose endpoints</p>
+                <p><strong>Items:</strong> Manage items in our system</p>
+                <p><strong>Security:</strong> Endpoints demonstrating security documentation</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🌟 General Endpoints</h2>
+            <div class="form-group">
+                <button onclick="fetchWelcome()">Get Welcome Message</button>
+                <div id="welcome-result" class="result"></div>
+                <div class="api-url">GET /</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📦 Items Endpoints</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('search-tab', ['create-tab', 'get-tab'])">Search Items</div>
+                <div class="tab" onclick="switchTab('create-tab', ['search-tab', 'get-tab'])">Create Item</div>
+                <div class="tab" onclick="switchTab('get-tab', ['search-tab', 'create-tab'])">Get Item by ID</div>
+            </div>
+            
+            <div id="search-tab" class="tab-content active">
+                <div class="form-group">
+                    <label for="search-query">Search Query:</label>
+                    <input type="text" id="search-query" placeholder="Min 3 characters" value="gadget">
+                </div>
+                <div class="form-group">
+                    <label for="search-category">Category:</label>
+                    <select id="search-category">
+                        <option value="">Any Category</option>
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="food">Food</option>
+                        <option value="tools">Tools</option>
+                    </select>
+                </div>
+                <button onclick="searchItems()">Search Items</button>
+                <div id="search-result" class="result"></div>
+                <div class="api-url">GET /items/?query={query}&category={category}</div>
+            </div>
+            
+            <div id="create-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="item-name">Name:</label>
+                    <input type="text" id="item-name" placeholder="3-50 characters" value="Smartwatch">
+                </div>
+                <div class="form-group">
+                    <label for="item-description">Description:</label>
+                    <textarea id="item-description" placeholder="Optional, max 300 characters">A wearable device that tracks fitness and notifications.</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="item-price">Price:</label>
+                    <input type="number" id="item-price" placeholder="Greater than 0" value="299.99">
+                </div>
+                <div class="form-group">
+                    <label for="item-category">Category:</label>
+                    <select id="item-category">
+                        <option value="electronics">Electronics</option>
+                        <option value="clothing">Clothing</option>
+                        <option value="food">Food</option>
+                        <option value="tools">Tools</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="item-tags">Tags (comma-separated):</label>
+                    <input type="text" id="item-tags" placeholder="e.g. tech, gadget" value="wearable, tech, gadget">
+                </div>
+                <button onclick="createItem()">Create Item</button>
+                <div id="create-result" class="result"></div>
+                <div class="api-url">POST /items/</div>
+            </div>
+            
+            <div id="get-tab" class="tab-content">
+                <div class="form-group">
+                    <label for="item-id">Item ID:</label>
+                    <input type="number" id="item-id" placeholder="Greater than 0" value="123">
+                </div>
+                <button onclick="getItem()">Get Item</button>
+                <div id="get-result" class="result"></div>
+                <div class="api-url">GET /items/{item_id}</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔒 Security Endpoints</h2>
+            <p>This endpoint demonstrates security documentation with an API key.</p>
+            <div class="form-group">
+                <label for="api-key">API Key:</label>
+                <input type="text" id="api-key" placeholder="Your API key" value="demo-api-key">
+            </div>
+            <button onclick="getSecureData()">Access Secure Data</button>
+            <div id="secure-result" class="result"></div>
+            <div class="api-url">GET /secure-data/</div>
+        </div>
+    </div>
+
+    <script>
+        // Switch between tabs
+        function switchTab(activeTabId, inactiveTabIds) {
+            // Activate the selected tab
+            document.getElementById(activeTabId).classList.add('active');
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(activeTabId.split('-')[0])) {
+                    tab.classList.add('active');
+                }
+            });
+            
+            // Deactivate other tabs
+            inactiveTabIds.forEach(tabId => {
+                document.getElementById(tabId).classList.remove('active');
+                document.querySelectorAll('.tab').forEach(tab => {
+                    if (tab.textContent.toLowerCase().includes(tabId.split('-')[0])) {
+                        tab.classList.remove('active');
+                    }
+                });
+            });
+        }
+        
+        // Fetch welcome message
+        async function fetchWelcome() {
+            const resultDiv = document.getElementById('welcome-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch('/');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `<strong>Message:</strong> ${data.message}`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Failed to fetch welcome message'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Search items
+        async function searchItems() {
+            const query = document.getElementById('search-query').value;
+            const category = document.getElementById('search-category').value;
+            const resultDiv = document.getElementById('search-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                let url = '/items/';
+                const params = new URLSearchParams();
+                
+                if (query) params.append('query', query);
+                if (category) params.append('category', category);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    
+                    if (data.length > 0) {
+                        let html = '<strong>Items Found:</strong>';
+                        
+                        data.forEach(item => {
+                            html += `
+                                <div class="item-card">
+                                    <div class="item-name">${item.name}</div>
+                                    <div>${item.description || 'No description'}</div>
+                                    <div class="item-price">$${item.price.toFixed(2)}</div>
+                                    <div class="item-category">${item.category}</div>
+                                    <div>
+                                        ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        resultDiv.innerHTML = html;
+                    } else {
+                        resultDiv.innerHTML = '<strong>No items found matching your criteria.</strong>';
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Failed to search items'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Create item
+        async function createItem() {
+            const name = document.getElementById('item-name').value;
+            const description = document.getElementById('item-description').value;
+            const price = parseFloat(document.getElementById('item-price').value);
+            const category = document.getElementById('item-category').value;
+            const tags = document.getElementById('item-tags').value
+                .split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag.length > 0);
+            
+            const resultDiv = document.getElementById('create-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Creating item...';
+            
+            try {
+                const response = await fetch('/items/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        description: description || null,
+                        price,
+                        category,
+                        tags
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Item Created Successfully:</strong>
+                        <div class="item-card">
+                            <div class="item-name">${data.name}</div>
+                            <div>${data.description || 'No description'}</div>
+                            <div class="item-price">$${data.price.toFixed(2)}</div>
+                            <div class="item-category">${data.category}</div>
+                            <div>
+                                ${data.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Get item by ID
+        async function getItem() {
+            const itemId = document.getElementById('item-id').value;
+            const resultDiv = document.getElementById('get-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch(`/items/${itemId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Item Found:</strong>
+                        <div class="item-card">
+                            <div class="item-name">${data.name}</div>
+                            <div class="item-price">$${data.price.toFixed(2)}</div>
+                            <div class="item-category">${data.category}</div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Get secure data
+        async function getSecureData() {
+            const apiKey = document.getElementById('api-key').value;
+            const resultDiv = document.getElementById('secure-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+            
+            try {
+                const response = await fetch('/secure-data/', {
+                    headers: {
+                        'X-API-Key': apiKey
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Secure Data Access Successful:</strong>
+                        <p>${data.message}</p>
+                        <p>API Key Used: ${data.api_key_used}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Access denied'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

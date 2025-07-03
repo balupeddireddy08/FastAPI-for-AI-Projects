@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☕ Brew Master Coffee Shop</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f0e8;
+            color: #5d4037;
+        }
+        header {
+            background-color: #795548;
+            color: #fff;
+            text-align: center;
+            padding: 2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        .tagline {
+            font-style: italic;
+            margin-top: 0.5rem;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: #795548;
+            border-bottom: 2px solid #d7ccc8;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        .coffee-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .coffee-item {
+            background-color: #f9f5f0;
+            border-radius: 8px;
+            padding: 1rem;
+            border: 1px solid #d7ccc8;
+        }
+        .coffee-name {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .coffee-price {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .coffee-caffeine {
+            font-size: 0.9rem;
+            color: #795548;
+        }
+        button {
+            background-color: #795548;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #5d4037;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #d7ccc8;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-right: 0.5rem;
+        }
+        .result {
+            background-color: #f9f5f0;
+            border: 1px solid #d7ccc8;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+        }
+        .api-url {
+            background-color: #f1f1f1;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #795548;
+            font-size: 0.9rem;
+        }
+        .links {
+            margin-top: 1rem;
+        }
+        .links a {
+            color: #795548;
+            margin: 0 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>☕ Brew Master Coffee Shop</h1>
+        <p class="tagline">Your favorite neighborhood coffee shop, now with an API!</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🏠 Welcome to Brew Master!</h2>
+            <p>This is a simple frontend for the Brew Master Coffee Shop API. Use the sections below to interact with different API endpoints.</p>
+            <div class="links">
+                <a href="/docs" target="_blank">📚 API Documentation (Swagger UI)</a>
+                <a href="/redoc" target="_blank">📖 Alternative Docs (ReDoc)</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Today's Menu</h2>
+            <p>View all available coffees from our menu.</p>
+            <button onclick="fetchMenu()">Load Menu</button>
+            <div id="menu-result" class="result" style="display: none;"></div>
+            <div class="api-url">GET /</div>
+        </div>
+
+        <div class="card">
+            <h2>☕ Coffee Details</h2>
+            <p>Get details about a specific coffee from our menu.</p>
+            <select id="coffee-id">
+                <option value="1">1 - Espresso</option>
+                <option value="2">2 - Cappuccino</option>
+                <option value="3">3 - Latte</option>
+                <option value="4">4 - Americano</option>
+                <option value="5">5 - Frappuccino</option>
+            </select>
+            <button onclick="fetchCoffeeDetails()">Get Details</button>
+            <div id="coffee-details-result" class="result" style="display: none;"></div>
+            <div class="api-url">GET /menu/coffee/{coffee_id}</div>
+        </div>
+
+        <div class="card">
+            <h2>💰 Calculate Total with Tip</h2>
+            <p>Calculate the total cost of your coffee including a tip for our baristas.</p>
+            <div>
+                <label for="coffee-price">Coffee Price ($):</label>
+                <input type="number" id="coffee-price" value="4.50" step="0.01" min="0.01">
+            </div>
+            <div style="margin-top: 0.5rem;">
+                <label for="tip-percentage">Tip Percentage (%):</label>
+                <input type="number" id="tip-percentage" value="15" min="0" max="100">
+            </div>
+            <button onclick="calculateTotal()" style="margin-top: 0.5rem;">Calculate Total</button>
+            <div id="calculate-result" class="result" style="display: none;"></div>
+            <div class="api-url">GET /calculate/total/{coffee_price}?tip_percentage={tip_percentage}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>☕ Brew Master Coffee Shop API - Section 1: FastAPI Introduction</p>
+        <p>Built with FastAPI and ❤️</p>
+    </div>
+
+    <script>
+        async function fetchMenu() {
+            const resultDiv = document.getElementById('menu-result');
+            resultDiv.innerHTML = 'Loading...';
+            resultDiv.style.display = 'block';
+
+            try {
+                const response = await fetch('/');
+                const data = await response.json();
+                
+                let html = '<h3>Today\'s Special: ' + data.todays_special + '</h3>';
+                html += '<div class="coffee-list">';
+                
+                data.available_coffees.forEach(coffee => {
+                    html += `
+                        <div class="coffee-item">
+                            <div class="coffee-name">${coffee.name}</div>
+                            <div class="coffee-price">$${coffee.price.toFixed(2)}</div>
+                            <div class="coffee-caffeine">Caffeine: ${coffee.caffeine_level}</div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                html += '<p><strong>WiFi Password:</strong> ' + data.wifi_password + '</p>';
+                
+                resultDiv.innerHTML = html;
+            } catch (error) {
+                resultDiv.innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        async function fetchCoffeeDetails() {
+            const coffeeId = document.getElementById('coffee-id').value;
+            const resultDiv = document.getElementById('coffee-details-result');
+            resultDiv.innerHTML = 'Loading...';
+            resultDiv.style.display = 'block';
+
+            try {
+                const response = await fetch(`/menu/coffee/${coffeeId}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultDiv.innerHTML = `<p style="color: #f44336;">${data.error}</p>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="coffee-item" style="max-width: 300px; margin: 0 auto;">
+                            <div class="coffee-name">${data.name}</div>
+                            <div class="coffee-price">$${data.price.toFixed(2)}</div>
+                            <div class="coffee-caffeine">Caffeine: ${data.caffeine_level}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = 'Error: ' + error.message;
+            }
+        }
+
+        async function calculateTotal() {
+            const coffeePrice = document.getElementById('coffee-price').value;
+            const tipPercentage = document.getElementById('tip-percentage').value;
+            const resultDiv = document.getElementById('calculate-result');
+            resultDiv.innerHTML = 'Calculating...';
+            resultDiv.style.display = 'block';
+
+            try {
+                const response = await fetch(`/calculate/total/${coffeePrice}?tip_percentage=${tipPercentage}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    resultDiv.innerHTML = `<p style="color: #f44336;">${data.error}</p>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <p><strong>Coffee Price:</strong> $${data.coffee_price.toFixed(2)}</p>
+                        <p><strong>Tip (${data.tip_percentage}):</strong> $${data.tip_amount.toFixed(2)}</p>
+                        <p><strong>Total Cost:</strong> $${data.total_cost.toFixed(2)}</p>
+                        <p><strong>Barista Happiness:</strong> ${data.barista_happiness}</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html> 

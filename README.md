@@ -17,6 +17,17 @@ Transform from beginner to API expert by building **10 exciting projects** - fro
 | 9 | 🏦 SecureBank Platform | Security & Authentication |
 | 10 | 🤖 Jarvis AI Assistant | AI Integration |
 
+## 📊 Visual Learning with Diagrams
+
+Each tutorial now includes **interactive diagrams** that visually explain key FastAPI concepts! These visual aids help you:
+
+- Understand complex concepts more intuitively
+- See the flow of data through your API
+- Grasp relationships between different components
+- Visualize architectural patterns
+
+The diagrams use Mermaid syntax for clarity and are embedded directly in the README files, making it easy to follow along as you build each project.
+
 ## 🚀 Quick Start
 
 ```bash
@@ -56,6 +67,7 @@ Create production-ready systems with streaming, security, and AI.
 - **Progressive Learning**: Each section builds on the previous
 - **AI-Ready**: Perfect foundation for modern development
 - **Production-Ready**: Learn industry best practices
+- **Visual Learning**: Diagrams make complex concepts clear
 
 ## 🚀 Start Your Journey
 

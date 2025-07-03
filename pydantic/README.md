@@ -18,6 +18,37 @@ Our "Recipe Master" application now has a very focused set of features to demons
 - 🥘 Check individual ingredient quantities.
 - ⏰ Ensure total preparation and cooking times are reasonable.
 
+## 📊 Pydantic Validation Flow
+
+```mermaid
+graph TD
+    A[Client Request] -->|JSON Data| B[FastAPI App]
+    
+    subgraph "Pydantic Validation"
+    B --> C[Pydantic Models]
+    C --> D[Type Validation]
+    C --> E[Field Validation]
+    C --> F[Custom Validators]
+    
+    D -->|Correct Types| G[Valid Data]
+    E -->|Valid Values| G
+    F -->|Custom Rules| G
+    
+    D -->|Wrong Types| H[422 Validation Error]
+    E -->|Invalid Values| H
+    F -->|Failed Custom Rules| H
+    end
+    
+    G -->|Process Request| I[API Response]
+    H -->|Return Error| J[Error Response]
+    
+    subgraph "Pydantic Model Example"
+    K["class SmartRecipe(BaseModel):<br/>    name: str = Field(..., min_length=3)<br/>    prep_time_minutes: int = Field(..., gt=0)<br/>    ingredients: List[SmartIngredient]<br/><br/>    @model_validator<br/>    def total_time_check(cls, data):<br/>        # Custom validation logic<br/>        return data"]
+    end
+    
+    K --> C
+```
+
 ## 🔥 Pydantic in Action: Key Concepts
 
 Pydantic works by letting you define data "schemas" using Python classes that inherit from `BaseModel`. You specify the expected type for each piece of data (e.g., `str` for text, `int` for whole numbers) and can add extra rules.

@@ -9,6 +9,62 @@ This section provides a focused, easy-to-understand example of advanced streamin
 3.  **Advanced WebSockets**: Creating separate communication channels for mission teams.
 4.  **Upload with Progress**: Sending a new command sequence and monitoring its validation.
 
+## 📊 Streaming Concepts Visualization
+
+```mermaid
+graph TD
+    subgraph "Streaming Concepts"
+    A["StreamingResponse<br/>Large File Transfer"]
+    B["Server-Sent Events (SSE)<br/>One-way Real-time Updates"]
+    C["WebSockets<br/>Two-way Communication"]
+    D["Upload with Progress<br/>Real-time Feedback"]
+    end
+    
+    subgraph "Cosmic Rover Example"
+    E["Rover Image Feed<br/>Chunked Image Transfer"]
+    F["Telemetry Feed<br/>Live Rover Status"]
+    G["Mission Comms<br/>Team Chat Channels"]
+    H["Command Upload<br/>Validation Progress"]
+    end
+    
+    A --> E
+    B --> F
+    C --> G
+    D --> H
+    
+    E --> I["yield image_chunk<br/>4KB at a time"]
+    F --> J["yield telemetry_data<br/>Every 2 seconds"]
+    G --> K["ConnectionManager<br/>Team-specific Rooms"]
+    H --> L["yield validation_progress<br/>Step-by-step updates"]
+    
+    subgraph "Client Experience"
+    M["Immediate Start<br/>Progressive Loading"]
+    N["Real-time Updates<br/>Without Polling"]
+    O["Interactive Chat<br/>Multiple Channels"]
+    P["Upload Feedback<br/>Process Visibility"]
+    end
+    
+    I --> M
+    J --> N
+    K --> O
+    L --> P
+```
+
+## 📋 Streaming Concepts Summary Table
+
+| Streaming Concept | Use Case | Implementation | Benefits |
+|-------------------|----------|---------------|----------|
+| **StreamingResponse** | Large file downloads | `StreamingResponse(image_chunk_generator())` | Low memory usage, immediate start |
+| **Chunked Transfer** | High-resolution images | `while chunk := await f.read(4096): yield chunk` | Progressive loading, no timeout |
+| **Server-Sent Events** | Live telemetry data | `media_type="text/event-stream"` | Real-time updates without polling |
+| **SSE Format** | Structured event stream | `yield f"data: {json.dumps(data)}\n\n"` | Browser-compatible event format |
+| **WebSockets** | Team communication | `@app.websocket("/ws/comms/{team_channel}")` | Full-duplex real-time messaging |
+| **Connection Manager** | Multi-channel chat | `manager.broadcast_to_room(message, room)` | Organized communication channels |
+| **Upload with Progress** | Command validation | `yield f"data: {json.dumps({'status': 'VALIDATING'})}\n\n"` | Real-time feedback during processing |
+| **Infinite Generators** | Continuous monitoring | `while True: yield data; await asyncio.sleep(2)` | Never-ending data streams |
+| **Error Handling** | Robust connections | `try/except` around WebSocket operations | Graceful disconnection handling |
+| **Media Types** | Content identification | `media_type="image/jpeg"` | Browser-compatible content rendering |
+
 ---
 
 ## 🚀 The "Cosmic Rover" Example

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 Game Character Builder - Type Hints</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+        }
+        header {
+            background-color: #16213e;
+            color: #00d9ff;
+            text-align: center;
+            padding: 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+        }
+        .tagline {
+            color: #e6e6e6;
+            margin-top: 0.5rem;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background-color: #16213e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid #2a2a5a;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        h2 {
+            color: #00d9ff;
+            border-bottom: 2px solid #2a2a5a;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #c5c5c5;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #2a2a5a;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: #0f0f23;
+            color: #e6e6e6;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 5px rgba(0, 217, 255, 0.5);
+        }
+        button {
+            background-color: #0099cc;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #00d9ff;
+            transform: scale(1.05);
+        }
+        .result {
+            background-color: #0f0f23;
+            border: 1px solid #2a2a5a;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-top: 1rem;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .success {
+            border-left: 5px solid #4caf50;
+        }
+        .error {
+            border-left: 5px solid #f44336;
+        }
+        .api-url {
+            background-color: #0f0f23;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .links {
+            margin-top: 1rem;
+        }
+        .links a {
+            color: #00d9ff;
+            margin: 0 0.5rem;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        .links a:hover {
+            color: #66e9ff;
+            text-decoration: underline;
+        }
+        .character-card {
+            background-color: #1e2747;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid #2a2a5a;
+        }
+        .character-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .character-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00d9ff;
+        }
+        .character-class {
+            background-color: #0099cc;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .character-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .stat {
+            background-color: #0f0f23;
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .stat-name {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e6e6e6;
+        }
+        .battle-result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #1e2747;
+            border-radius: 8px;
+            border: 1px solid #2a2a5a;
+        }
+        .battle-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #00d9ff;
+        }
+        .battle-damage {
+            font-size: 1.2rem;
+            color: #ff5252;
+            text-align: center;
+            margin: 0.5rem 0;
+        }
+        .battle-outcome {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        .winner {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+        .loser {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎮 Game Character Builder</h1>
+        <p class="tagline">Learn Python Type Hints with Game Characters</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🏠 Welcome to Game Character Builder!</h2>
+            <p>This interface demonstrates <strong>Python Type Hints</strong> in FastAPI. Create characters and simulate battles to see how type hints ensure data integrity.</p>
+            <div class="links">
+                <a href="/docs" target="_blank">📚 API Documentation (Swagger UI)</a>
+                <a href="/redoc" target="_blank">📖 Alternative Docs (ReDoc)</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🧙‍♂️ Create a Character</h2>
+            <p>Fill out the form below to create a new game character. Notice how the API enforces the correct data types.</p>
+            
+            <form id="character-form" onsubmit="createCharacter(event)">
+                <div class="form-group">
+                    <label for="name">Character Name:</label>
+                    <input type="text" id="name" placeholder="Enter character name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="character-class">Character Class:</label>
+                    <select id="character-class">
+                        <option value="warrior">Warrior</option>
+                        <option value="mage">Mage</option>
+                        <option value="rogue">Rogue</option>
+                        <option value="archer">Archer</option>
+                        <option value="paladin">Paladin</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="level">Level:</label>
+                    <input type="number" id="level" value="1" min="1" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="health">Starting Health:</label>
+                    <input type="number" id="health" value="100.0" min="1" step="0.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="mana">Starting Mana:</label>
+                    <input type="number" id="mana" value="50.0" min="0" step="0.5">
+                </div>
+                
+                <button type="submit">Create Character</button>
+            </form>
+            
+            <div id="character-result" class="result" style="display: none;"></div>
+            <div class="api-url">POST /characters/create/</div>
+        </div>
+
+        <div class="card">
+            <h2>⚔️ Simulate Battle</h2>
+            <p>Simulate a battle between two characters. This demonstrates how FastAPI handles different parameter types.</p>
+            
+            <form id="battle-form" onsubmit="simulateBattle(event)">
+                <div class="form-group">
+                    <label for="attacker">Attacker ID or Name:</label>
+                    <input type="text" id="attacker" placeholder="Enter character ID or name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="defender">Defender ID or Name:</label>
+                    <input type="text" id="defender" placeholder="Enter character ID or name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="attack-type">Attack Type:</label>
+                    <select id="attack-type">
+                        <option value="sword_slash">Sword Slash</option>
+                        <option value="fireball">Fireball</option>
+                        <option value="backstab">Backstab</option>
+                        <option value="arrow_shot">Arrow Shot</option>
+                        <option value="holy_smite">Holy Smite</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="weapon-damage">Weapon Damage:</label>
+                    <input type="number" id="weapon-damage" value="25" min="1" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="critical">Critical Hit:</label>
+                    <select id="critical">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+                
+                <button type="submit">Simulate Battle</button>
+            </form>
+            
+            <div id="battle-result" class="result" style="display: none;"></div>
+            <div class="api-url">POST /battle/simulate/</div>
+        </div>
+
+        <div class="card">
+            <h2>🔍 View Character Details</h2>
+            <p>Look up a character by ID. This demonstrates path parameters with type hints.</p>
+            
+            <form id="details-form" onsubmit="getCharacterDetails(event)">
+                <div class="form-group">
+                    <label for="character-id">Character ID:</label>
+                    <input type="number" id="character-id" value="1" min="1">
+                </div>
+                
+                <div class="form-group">
+                    <label for="include-inventory">Include Inventory:</label>
+                    <select id="include-inventory">
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+                    </select>
+                </div>
+                
+                <button type="submit">Get Details</button>
+            </form>
+            
+            <div id="details-result" class="result" style="display: none;"></div>
+            <div class="api-url">GET /characters/{character_id}?include_inventory={include_inventory}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>🎮 Game Character Builder API - Section 2: Type Hints</p>
+        <p>Built with FastAPI and Python Type Hints ❤️</p>
+    </div>
+
+    <script>
+        // Create a character
+        async function createCharacter(event) {
+            event.preventDefault();
+            
+            const resultDiv = document.getElementById('character-result');
+            resultDiv.innerHTML = 'Creating character...';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            const character = {
+                name: document.getElementById('name').value,
+                character_class: document.getElementById('character-class').value,
+                level: parseInt(document.getElementById('level').value),
+                starting_health: parseFloat(document.getElementById('health').value),
+                starting_mana: parseFloat(document.getElementById('mana').value)
+            };
+            
+            try {
+                const response = await fetch('/characters/create/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(character)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    
+                    // Create a character card display
+                    let html = `
+                        <div class="character-card">
+                            <div class="character-header">
+                                <span class="character-name">${data.name}</span>
+                                <span class="character-class">${data.character_class}</span>
+                            </div>
+                            <div class="character-stats">
+                                <div class="stat">
+                                    <div class="stat-name">Level</div>
+                                    <div class="stat-value">${data.level}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-name">Health</div>
+                                    <div class="stat-value">${data.health}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-name">Mana</div>
+                                    <div class="stat-value">${data.mana}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <p><strong>Character ID:</strong> ${data.id}</p>
+                        <p><strong>Message:</strong> ${data.message}</p>
+                    `;
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        // Simulate battle
+        async function simulateBattle(event) {
+            event.preventDefault();
+            
+            const resultDiv = document.getElementById('battle-result');
+            resultDiv.innerHTML = 'Simulating battle...';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            const battleParams = {
+                attacker_id: document.getElementById('attacker').value,
+                defender_id: document.getElementById('defender').value,
+                attack_type: document.getElementById('attack-type').value,
+                weapon_damage: parseInt(document.getElementById('weapon-damage').value),
+                critical_hit: document.getElementById('critical').value === 'true'
+            };
+            
+            try {
+                const queryParams = new URLSearchParams(battleParams);
+                const response = await fetch(`/battle/simulate/?${queryParams}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    
+                    // Create a battle result display
+                    let html = `
+                        <div class="battle-result">
+                            <div class="battle-header">
+                                <span>${data.attacker_name || battleParams.attacker_id}</span>
+                                <span>vs</span>
+                                <span>${data.defender_name || battleParams.defender_id}</span>
+                            </div>
+                            <div class="battle-damage">
+                                ${data.damage} damage dealt!
+                                ${data.critical_hit ? '(CRITICAL HIT!)' : ''}
+                            </div>
+                            <div class="battle-outcome ${data.winner === data.attacker_name ? 'winner' : 'loser'}">
+                                ${data.outcome}
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+        
+        // Get character details
+        async function getCharacterDetails(event) {
+            event.preventDefault();
+            
+            const resultDiv = document.getElementById('details-result');
+            resultDiv.innerHTML = 'Getting character details...';
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result';
+            
+            const characterId = document.getElementById('character-id').value;
+            const includeInventory = document.getElementById('include-inventory').value;
+            
+            try {
+                const response = await fetch(`/characters/${characterId}?include_inventory=${includeInventory}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    
+                    // Create a character card display
+                    let html = `
+                        <div class="character-card">
+                            <div class="character-header">
+                                <span class="character-name">${data.name}</span>
+                                <span class="character-class">${data.class}</span>
+                            </div>
+                            <div class="character-stats">
+                                <div class="stat">
+                                    <div class="stat-name">Level</div>
+                                    <div class="stat-value">${data.level}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-name">Health</div>
+                                    <div class="stat-value">${data.health}</div>
+                                </div>
+                                <div class="stat">
+                                    <div class="stat-name">Mana</div>
+                                    <div class="stat-value">${data.mana}</div>
+                                </div>
+                            </div>
+                    `;
+                    
+                    if (data.inventory && data.inventory.length > 0) {
+                        html += `
+                            <div style="margin-top: 1rem;">
+                                <div style="font-weight: bold; margin-bottom: 0.5rem;">Inventory:</div>
+                                <ul style="margin: 0; padding-left: 1.5rem;">
+                        `;
+                        
+                        data.inventory.forEach(item => {
+                            html += `<li>${item.name} (${item.type})</li>`;
+                        });
+                        
+                        html += `
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `</div>`;
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Error</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

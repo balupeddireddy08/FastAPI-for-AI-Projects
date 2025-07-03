@@ -18,6 +18,39 @@ Our RPG character system is designed to demonstrate practical applications of ty
 -   ⚔️ Define character classes (Warrior, Mage, Rogue, Archer, Paladin) using `Enum` for validated input.
 -   📊 Type-safe character stats (`Dict[str, int]`) and battle calculations (`Union[int, str]`).
 
+## 📊 Type Hints and FastAPI Integration
+
+```mermaid
+graph TD
+    A[Python Type Hints] --> B[FastAPI]
+    
+    subgraph "Type Hint Examples"
+    C["Basic Types<br/>name: str<br/>level: int<br/>health: float"] 
+    D["Complex Types<br/>inventory: List[str]<br/>stats: Dict[str, int]"]
+    E["Optional Types<br/>weapon: Optional[str]<br/>armor: Union[str, None]"]
+    F["Enum Types<br/>class CharacterClass(str, Enum)"]
+    end
+    
+    subgraph "FastAPI Benefits"
+    G[Automatic Data Validation]
+    H[Interactive Documentation]
+    I[IDE Support]
+    J[Early Error Detection]
+    end
+    
+    C --> B
+    D --> B
+    E --> B
+    F --> B
+    
+    B --> G
+    B --> H
+    B --> I
+    B --> J
+    
+    H --> K[Swagger UI]
+```
+
 ## 🔤 Type Hints Fundamentals & Advanced Patterns
 
 ### **1. Basic Type Hints in Functions**
@@ -125,6 +158,19 @@ With type hints, modern Integrated Development Environments (IDEs) like VS Code 
 -   Better autocompletion for function arguments and object attributes.
 -   Real-time error detection for type mismatches *before* you even run your code.
 -   More effective refactoring tools.
+
+## 📋 Type Hints Summary Table
+
+| Type Hint | Description | Example | FastAPI Benefit |
+|-----------|-------------|---------|----------------|
+| **Basic Types** | Simple type annotations | `name: str`, `level: int`, `health: float` | Input validation, automatic conversion |
+| **Complex Collections** | Container type annotations | `inventory: List[str]`, `stats: Dict[str, int]` | Validates structure of nested data |
+| **Optional Types** | Values that may be None | `weapon: Optional[str]`, `armor: Union[str, None]` | Makes parameters optional in API |
+| **Union Types** | Multiple possible types | `character_id: Union[int, str]` | Flexible input formats |
+| **Enum Classes** | Fixed set of choices | `class CharacterClass(str, Enum)` | Dropdown selectors in Swagger UI |
+| **Return Type Hints** | Function output type | `def get_stats() -> Dict[str, int]` | Documents response structure |
+| **Default Values** | Fallback when not provided | `level: int = 1` | Optional parameters with defaults |
+| **Generic Types** | Parameterized types | `Response[T]`, `List[Dict[str, Any]]` | Complex nested validation |
 
 ## 🎲 Key Endpoints: Type Hints in Action
 

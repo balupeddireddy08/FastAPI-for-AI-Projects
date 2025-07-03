@@ -33,9 +33,14 @@ def get_library_card(x_library_card: Optional[str] = Header(None)):
 # === MAIN LIBRARY ROUTES ===
 
 @app.get("/")
-def library_entrance():
+async def library_entrance():
     """Welcome to the Simplified Digital Library! ✨"""
-    return {"message": "📚 Welcome to the Simplified Digital Library! Focus on Routing."}
+    try:
+        with open("routing/index.html", "r", encoding="utf-8") as f:
+            from fastapi.responses import HTMLResponse
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return {"message": "📚 Welcome to the Simplified Digital Library! Focus on Routing."}
 
 # === BOOK DISCOVERY ROUTES (Focus on Parameters) ===
 

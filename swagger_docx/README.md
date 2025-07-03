@@ -17,6 +17,68 @@ The `main.py` file is structured as a tutorial, demonstrating how different part
 8.  **Security Scheme Documentation**: Using FastAPI's security utilities (`APIKeyHeader`, `Depends`) to document protected endpoints, which adds an "Authorize" button to the Swagger UI.
 9.  **Advanced Schema Customization**: Directly modifying the generated OpenAPI schema to add custom elements, such as a company logo.
 
+## 📊 Documentation Generation Flow
+
+```mermaid
+graph TD
+    subgraph "FastAPI Code"
+    A["FastAPI App Metadata<br/>title, description, version"]
+    B["Pydantic Models<br/>with Field descriptions"]
+    C["Endpoint Decorators<br/>summary, description, tags"]
+    D["Parameter Decorators<br/>Path, Query, Body"]
+    E["Response Documentation<br/>response_model, responses dict"]
+    F["Security Schemes<br/>OAuth2, APIKey"]
+    end
+    
+    subgraph "Generated Documentation"
+    G["OpenAPI Schema<br/>/openapi.json"]
+    H["Swagger UI<br/>/docs"]
+    I["ReDoc<br/>/redoc"]
+    end
+    
+    A --> G
+    B --> G
+    C --> G
+    D --> G
+    E --> G
+    F --> G
+    
+    G --> H
+    G --> I
+    
+    subgraph "Interactive Features"
+    J["Try it out<br/>Execute API calls"]
+    K["Request Body Editor<br/>with validation"]
+    L["Authorization<br/>Security testing"]
+    M["Response Examples<br/>Expected outputs"]
+    end
+    
+    H --> J
+    H --> K
+    H --> L
+    H --> M
+```
+
+## 📋 API Documentation Concepts Summary Table
+
+| Documentation Feature | Description | Implementation | Benefits |
+|----------------------|-------------|----------------|----------|
+| **App Metadata** | Basic API information | `FastAPI(title="API Title", description="...")` | Clear API identity and purpose |
+| **OpenAPI Tags** | Endpoint categorization | `tags=["users"]` or `openapi_tags=[...]` | Organized documentation structure |
+| **Operation Summary** | Short endpoint description | `summary="Create new user"` | Quick understanding of endpoint purpose |
+| **Operation Description** | Detailed endpoint info | `description="This endpoint creates..."` | Comprehensive endpoint documentation |
+| **Path Parameters** | URL path variables | `Path(..., description="User ID")` | Clear parameter documentation |
+| **Query Parameters** | URL query string params | `Query(None, description="Search term")` | Optional parameter documentation |
+| **Request Body** | Request payload docs | `Body(..., example={"name": "John"})` | Clear input expectations |
+| **Response Models** | Response structure docs | `response_model=UserResponse` | Clear output expectations |
+| **Response Examples** | Sample responses | `responses={200: {"content": {...}}}` | Show what to expect from the API |
+| **Status Codes** | HTTP response codes | `status_code=201` | Proper HTTP semantics |
+| **Field Descriptions** | Model field documentation | `Field(..., description="User's email")` | Detailed data model documentation |
+| **Schema Examples** | Sample data structures | `schema_extra = {"example": {...}}` | Show how to structure data |
+| **Security Schemes** | Auth documentation | `security=[{"apiKeyAuth": []}]` | Document authentication methods |
+| **External Docs** | Links to more info | `openapi_url="/api/v1/openapi.json"` | Extended documentation access |
+| **Deprecation** | Mark outdated endpoints | `deprecated=True` | API lifecycle management |
+
 ## 🚀 Running the Documentation Demo
 
 Get the server running to see the results of the code.

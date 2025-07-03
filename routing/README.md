@@ -23,6 +23,42 @@ Our library system is now streamlined to focus purely on demonstrating routing c
 - 🔐 Basic access control using dependencies.
 - ➕ Adding and updating books (admin routes example).
 
+## 📊 FastAPI Routing Structure
+
+```mermaid
+graph TD
+    A[Client] --> B[FastAPI App]
+    
+    subgraph "Main FastAPI Application"
+    B --> C[Main Routes]
+    B --> D[APIRouter: User Routes]
+    B --> E[APIRouter: Admin Routes]
+    
+    C --> F["GET /books/{book_id}<br/>Path Parameter"]
+    C --> G["GET /books/search/?keyword=fastapi<br/>Query Parameters"]
+    C --> H["GET /genres/{genre_name}<br/>Enum Path Parameter"]
+    
+    D --> I["GET /users/{user_id}<br/>User Profile"]
+    E --> J["POST /admin/books/<br/>Add Book"]
+    E --> K["PUT /admin/books/{book_id}<br/>Update Book"]
+    end
+    
+    subgraph "Dependencies"
+    L[get_library_card]
+    end
+    
+    I --> L
+    J --> L
+    K --> L
+    
+    subgraph "HTTP Methods"
+    M[GET - Read Data]
+    N[POST - Create Data]
+    O[PUT - Update Data]
+    P[DELETE - Remove Data]
+    end
+```
+
 ## 🚀 Core Routing Concepts
 
 FastAPI uses Python decorators (`@app.get()`, `@app.post()`, etc.) to define API endpoints (routes). These routes map HTTP requests to specific Python functions.
@@ -80,6 +116,21 @@ Dependencies are functions or classes that FastAPI runs before your route operat
 # Access GET /users/101 with Header: X-Library-Card: VALID_CARD
 ```
 *Purpose*: Reduces code duplication, improves maintainability, and ensures consistent application of logic across multiple routes.
+
+## 📋 Routing Concepts Summary Table
+
+| Routing Concept | Description | Example | Benefits |
+|-----------------|-------------|---------|----------|
+| **Basic Routes** | Simple endpoint definitions | `@app.get("/")` | Entry points to your API |
+| **Path Parameters** | Variables in the URL path | `@app.get("/books/{book_id}")` | Identify specific resources |
+| **Query Parameters** | Optional URL parameters | `?keyword=fastapi&max_pages=500` | Filtering and customization |
+| **Enum Path Parameters** | Path params with fixed choices | `@app.get("/genres/{genre_name}")` | Type safety and validation |
+| **APIRouter** | Modular route organization | `user_router = APIRouter(prefix="/users")` | Code organization and reusability |
+| **Router Tags** | Group endpoints in docs | `tags=["users"]` | Better API documentation |
+| **Router Prefixes** | Common path prefix | `prefix="/admin"` | Consistent URL structure |
+| **Dependencies** | Shared logic between routes | `Depends(get_library_card)` | Code reuse and consistency |
+| **HTTP Methods** | Different operation types | `GET`, `POST`, `PUT`, `DELETE` | RESTful API design |
+| **Status Codes** | HTTP response status | `status_code=201` | Proper HTTP semantics |
 
 ## 🛠️ Running the Library
 

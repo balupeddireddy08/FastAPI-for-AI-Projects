@@ -265,31 +265,36 @@ async def process_with_gemini(prompt: str, personality: AssistantPersonality) ->
 @app.get("/")
 def ai_platform_home():
     """🏠 Welcome to Jarvis AI - Your Personal Assistant!"""
-    return {
-        "message": "🤖 Welcome to Jarvis AI!",
-        "tagline": "Your intelligent personal assistant powered by advanced AI ✨",
-        "capabilities": [
-            "💬 Natural conversation with memory",
-            "📚 Document analysis and Q&A",
-            "🔧 Code generation and debugging", 
-            "🎨 Creative writing and brainstorming",
-            "📊 Data analysis and insights",
-            "🌍 Web research and fact-checking",
-            "🛠️ Task automation and planning",
-            "🧠 Advanced problem solving"
-        ],
-        "ai_models": {
-            "primary": "Google Gemini Pro",
-            "framework": "LangChain",
-            "embeddings": "Google Palm Embeddings",
-            "memory": "Conversational Buffer"
-        },
-        "quick_start": {
-            "chat": "POST /chat - Start a conversation",
-            "upload": "POST /documents/upload - Upload documents to analyze",
-            "tasks": "POST /tasks/create - Create AI-powered tasks"
+    try:
+        with open("ai-integration/index.html", "r", encoding="utf-8") as f:
+            from fastapi.responses import HTMLResponse
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return {
+            "message": "🤖 Welcome to Jarvis AI!",
+            "tagline": "Your intelligent personal assistant powered by advanced AI ✨",
+            "capabilities": [
+                "💬 Natural conversation with memory",
+                "📚 Document analysis and Q&A",
+                "🔧 Code generation and debugging", 
+                "🎨 Creative writing and brainstorming",
+                "📊 Data analysis and insights",
+                "🌍 Web research and fact-checking",
+                "🛠️ Task automation and planning",
+                "🧠 Advanced problem solving"
+            ],
+            "ai_models": {
+                "primary": "Google Gemini Pro",
+                "framework": "LangChain",
+                "embeddings": "Google Palm Embeddings",
+                "memory": "Conversational Buffer"
+            },
+            "quick_start": {
+                "chat": "POST /chat - Start a conversation",
+                "upload": "POST /documents/upload - Upload documents to analyze",
+                "tasks": "POST /tasks/create - Create AI-powered tasks"
+            }
         }
-    }
 
 # === CONVERSATION ENDPOINTS ===
 

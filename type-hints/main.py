@@ -1,12 +1,24 @@
 from typing import Dict, List, Optional, Union, Any
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from enum import Enum
+import os
+import random
+from pydantic import BaseModel
 
 app = FastAPI(
-    title="🎮 Epic Character Builder - Type Hints Demo",
+    title="🎮 Game Character Builder - Type Hints Demo",
     description="Explore Python type hints by building an RPG character creation API.",
     version="2.0.0"
 )
+
+# Serve HTML file directly
+@app.get("/", response_class=HTMLResponse)
+async def get_html():
+    with open("type-hints/index.html", "r") as file:
+        return file.read()
 
 # Character classes enum for better type safety and auto-documentation
 # FastAPI uses this Enum to provide dropdowns in the API docs, ensuring valid choices.
@@ -16,6 +28,22 @@ class CharacterClass(str, Enum):
     ROGUE = "rogue"
     ARCHER = "archer"
     PALADIN = "paladin"
+
+# Item type enum for inventory items
+class ItemType(str, Enum):
+    WEAPON = "weapon"
+    ARMOR = "armor"
+    POTION = "potion"
+    ACCESSORY = "accessory"
+    SCROLL = "scroll"
+
+# Pydantic model for inventory items
+class InventoryItem(BaseModel):
+    name: str
+    type: ItemType
+    value: int
+    weight: float
+    description: Optional[str] = None
 
 # Function with comprehensive type hints for character creation logic
 # This function demonstrates: `str`, `Enum`, `int`, `float`, and `-> Dict[str, Any]` for return type.
@@ -47,7 +75,7 @@ def create_character_profile(
     
     return {
         "name": name,
-        "class": character_class.value, # Access enum value as a string
+        "character_class": character_class.value, # Access enum value as a string
         "level": level,
         "health": health,
         "mana": mana,
@@ -77,26 +105,39 @@ def calculate_battle_outcome(
     
     final_damage: float = base_damage
     
+    # Generate attacker and defender names for display
+    attacker_name = f"Hero-{attacker_id}" if isinstance(attacker_id, int) else attacker_id
+    defender_name = f"Hero-{defender_id}" if isinstance(defender_id, int) else defender_id
+    
+    # Determine battle outcome
+    outcome = "Victory!" if final_damage > 50 else "Minor damage dealt"
+    winner = attacker_name if final_damage > 50 else defender_name
     
     return {
         "attacker_id": attacker_id,
         "defender_id": defender_id,
+        "attacker_name": attacker_name,
+        "defender_name": defender_name,
         "attack_type": attack_type,
-        "base_damage": weapon_damage,
-        "critical_hit": critical_hit,       
-        "final_damage": round(final_damage, 1), # Round for cleaner output
-        "battle_result": "victory" if final_damage > 50 else "minor_damage"
+        "damage": round(final_damage, 1), # Round for cleaner output
+        "critical_hit": critical_hit,
+        "outcome": outcome,
+        "winner": winner
     }
 
+# In-memory database of characters
+characters_db: Dict[int, Dict[str, Any]] = {}
+next_character_id: int = 1
+
 # FastAPI endpoints with typed parameters
-@app.get("/", summary="Welcome to the Character Builder")
+@app.get("/api", summary="Welcome to the Character Builder")
 def game_lobby():
     """Provides a welcome message and basic info about the character builder.
     
     This simple endpoint demonstrates a basic GET request with a dictionary response.
     """
     return {
-        "message": "🎮 Welcome to the Epic Character Builder! Craft your legend.",
+        "message": "🎮 Welcome to the Game Character Builder! Craft your legend.",
         "online_players": 1337,
         "featured_class": "🗡️ Legendary Warrior",
         "daily_bonus": "Double XP Weekend!"
@@ -112,24 +153,44 @@ def get_character_details(
     
     FastAPI's automatic type conversion simplifies parameter handling from URL paths and query strings.
     """
-    # Simulate character data retrieval from a database or storage.
-    character_data: Dict[str, Any] = {
-        "id": character_id,
-        "name": f"Hero{character_id}",
-        "class": "warrior",
-        "level": 25,
-        "health": 85.5,
-        "mana": 42.3,
-        "is_online": True,
-        "last_login": "2024-01-15T10:30:00Z"
-    }
+    # Try to get character from our database, or create a default one
+    if character_id in characters_db:
+        character_data = characters_db[character_id].copy()
+    else:
+        # Simulate character data retrieval from a database or storage.
+        character_data: Dict[str, Any] = {
+            "id": character_id,
+            "name": f"Hero{character_id}",
+            "class": "warrior",
+            "level": 25,
+            "health": 85.5,
+            "mana": 42.3,
+            "is_online": True,
+            "last_login": "2024-01-15T10:30:00Z"
+        }
     
     if include_inventory: # Conditionally add inventory based on `include_inventory` boolean
+        # Generate some random inventory items
         character_data["inventory"] = [
-            "Steel Sword", 
-            "Leather Armor", 
-            "Health Potion x3",
-            "Magic Ring of Protection"
+            {
+                "name": "Steel Sword",
+                "type": "weapon",
+                "value": 250,
+                "weight": 5.5
+            },
+            {
+                "name": "Leather Armor",
+                "type": "armor",
+                "value": 150,
+                "weight": 8.0
+            },
+            {
+                "name": "Health Potion",
+                "type": "potion",
+                "value": 50,
+                "weight": 0.5,
+                "description": "Restores 50 health points"
+            }
         ]
         character_data["gold"] = 2500
     
@@ -148,8 +209,21 @@ def create_new_character(
     
     Type hints enable FastAPI's automatic data validation and provide rich, interactive documentation.
     """
+    global next_character_id
+    
     # Call the core logic function with type-hinted arguments.
-    return create_character_profile(name, character_class, level, starting_health, starting_mana)
+    character = create_character_profile(name, character_class, level, starting_health, starting_mana)
+    
+    # Add to our database
+    character_id = next_character_id
+    character["id"] = character_id
+    characters_db[character_id] = character
+    next_character_id += 1
+    
+    # Add a message for the frontend
+    character["message"] = f"Character {name} created successfully!"
+    
+    return character
 
 @app.post("/battle/simulate/", summary="Simulate a Battle")
 def simulate_battle(
@@ -173,6 +247,6 @@ def simulate_battle(
 
 if __name__ == "__main__":
     import uvicorn
-    print("🎮 Starting Epic Character Builder (Type Hints Demo)...")
-    print("🏰 Prepare for legendary adventures! Open your browser to http://localhost:8000/docs")
+    print("🎮 Starting Game Character Builder (Type Hints Demo)...")
+    print("🏰 Prepare for legendary adventures! Open your browser to http://localhost:8000")
     uvicorn.run(app, host="0.0.0.0", port=8000) 

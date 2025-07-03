@@ -12,6 +12,61 @@ This example connects the following concepts using analogies:
 -   **The Live News Ticker** (`StreamingResponse`): How to push a one-way stream of data from the server.
 -   **The Phone Call** (`WebSocket`): How to enable real-time, two-way communication.
 
+## 📊 FastAPI Async Concepts
+
+```mermaid
+graph TD
+    subgraph "FastAPI Async Concepts"
+    A["async def - The Skilled Waiter<br/>Non-blocking request handling"]
+    B["asyncio.gather - Coffee & Sandwich<br/>Run multiple tasks concurrently"]
+    C["BackgroundTasks - Online Shopping<br/>Fire-and-forget processing"]
+    D["StreamingResponse - News Ticker<br/>Server-to-client streaming"]
+    E["WebSocket - Phone Call<br/>Two-way real-time communication"]
+    end
+    
+    subgraph "Server Resources"
+    F[Worker Thread Pool]
+    end
+    
+    A --> F
+    
+    subgraph "Client Requests"
+    G[Request 1]
+    H[Request 2]
+    I[Request 3]
+    end
+    
+    G --> A
+    H --> A
+    I --> A
+    
+    A --> J["await asyncio.sleep(1)<br/>Non-blocking wait"]
+    
+    B --> K["Task 1: fetch_menu()"]
+    B --> L["Task 2: fetch_reviews()"]
+    
+    C --> M["Main Response"]
+    C -.-> N["Background Processing"]
+    
+    D --> O["Event Stream"]
+    E <--> P["WebSocket Connection"]
+```
+
+## 📋 Async Concepts Summary Table
+
+| Async Concept | Real-World Analogy | Implementation | Benefits |
+|---------------|-------------------|----------------|----------|
+| **async def** | The Skilled Waiter | `async def get_restaurant_info()` | Handle multiple requests without blocking |
+| **await** | Waiting for an order | `await asyncio.sleep(1)` | Pause execution without blocking the thread |
+| **asyncio.gather** | Ordering Coffee & Sandwich | `await asyncio.gather(task1, task2)` | Run multiple operations concurrently |
+| **BackgroundTasks** | Online Shopping Experience | `background_tasks.add_task(process_payment)` | Process tasks after sending response |
+| **StreamingResponse** | Live News Ticker | `return StreamingResponse(generator())` | Send continuous updates to client |
+| **yield** | Delivering updates one by one | `yield f"data: {json.dumps(data)}\n\n"` | Stream data chunks incrementally |
+| **WebSocket** | Phone Call | `@app.websocket("/ws/chat")` | Two-way real-time communication |
+| **ConnectionManager** | Call Center | `manager.broadcast(message)` | Manage multiple WebSocket connections |
+| **WebSocketDisconnect** | Hanging up | `except WebSocketDisconnect` | Handle connection termination |
+| **Server-Sent Events** | Radio Broadcast | `media_type="text/event-stream"` | One-way streaming protocol |
+
 ---
 
 ## 🛠️ Running The Demo

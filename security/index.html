@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎟️ Secure Concert API</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .tagline {
+            font-style: italic;
+            margin-top: 0.5rem;
+            color: rgba(255,255,255,0.9);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #6a11cb;
+        }
+        h2 {
+            color: #6a11cb;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .links a {
+            text-decoration: none;
+            color: #6a11cb;
+            font-weight: bold;
+        }
+        button {
+            background-color: #6a11cb;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #5a0db6;
+        }
+        button:disabled {
+            background-color: #b8b8b8;
+            cursor: not-allowed;
+        }
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+        .result {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            border-left: 4px solid #6a11cb;
+            display: none;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .api-url {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        .success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+        }
+        .security-concept {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            font-style: italic;
+        }
+        .token-display {
+            word-break: break-all;
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 1rem;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background-color: #e9ecef;
+            cursor: pointer;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #6a11cb;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🎟️ Secure Concert API</h1>
+        <p class="tagline">Learn FastAPI Security with a Concert Ticket Example</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🏠 Welcome to the Secure Concert API!</h2>
+            <p>This interface demonstrates core security concepts in FastAPI:</p>
+            <ul>
+                <li>🔐 <strong>Authentication</strong>: Using JWTs as "digital tickets" for secure login</li>
+                <li>🛡️ <strong>Authorization</strong>: Using Role-Based Access Control (RBAC)</li>
+                <li>🔑 <strong>Password Security</strong>: Never storing plain text passwords</li>
+                <li>⚡ <strong>Rate Limiting</strong>: Protecting login endpoints from brute-force attacks</li>
+            </ul>
+            <div class="links">
+                <a href="/docs" target="_blank">📚 API Documentation (Swagger UI)</a>
+                <a href="/redoc" target="_blank">📖 Alternative Docs (ReDoc)</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>👤 User Authentication</h2>
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('register-tab', 'login-tab')">Register</div>
+                <div class="tab" onclick="switchTab('login-tab', 'register-tab')">Login</div>
+            </div>
+            
+            <div id="register-tab" class="tab-content active">
+                <div class="security-concept">
+                    <strong>🎉 Security Concept:</strong> User Registration & Password Hashing - We immediately hash the password before storing it.
+                </div>
+                <div class="form-group">
+                    <label for="register-username">Username:</label>
+                    <input type="text" id="register-username" placeholder="Choose a username" value="concertfan">
+                </div>
+                <div class="form-group">
+                    <label for="register-email">Email:</label>
+                    <input type="email" id="register-email" placeholder="Your email" value="fan@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="register-password">Password:</label>
+                    <input type="password" id="register-password" placeholder="Minimum 8 characters" value="Password123!">
+                </div>
+                <button onclick="registerUser()">Register</button>
+                <div id="register-result" class="result"></div>
+                <div class="api-url">POST /auth/register</div>
+            </div>
+            
+            <div id="login-tab" class="tab-content">
+                <div class="security-concept">
+                    <strong>🔐 Security Concepts:</strong> Authentication, JWT Creation, Rate Limiting - We verify credentials and issue a JWT token.
+                </div>
+                <div class="form-group">
+                    <label for="login-username">Username:</label>
+                    <input type="text" id="login-username" placeholder="Your username" value="concertfan">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" placeholder="Your password" value="Password123!">
+                </div>
+                <button onclick="loginUser()">Login</button>
+                <div id="login-result" class="result"></div>
+                <div class="api-url">POST /auth/login</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎫 My Profile</h2>
+            <div class="security-concept">
+                <strong>👤 Security Concept:</strong> Requiring Authentication - This endpoint requires a valid JWT token.
+            </div>
+            <p>View your profile information (requires authentication):</p>
+            <button onclick="getMyProfile()">View My Profile</button>
+            <div id="profile-result" class="result"></div>
+            <div class="api-url">GET /attendees/me</div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Guest List (Organizers Only)</h2>
+            <div class="security-concept">
+                <strong>📋 Security Concept:</strong> Role-Based Access Control (RBAC) - Only users with the ORGANIZER role can access this endpoint.
+            </div>
+            <p>View the complete guest list (requires organizer role):</p>
+            <button onclick="getGuestList()">View Guest List</button>
+            <div id="guest-list-result" class="result"></div>
+            <div class="api-url">GET /organizer/guest-list</div>
+        </div>
+
+        <div class="card">
+            <h2>🔑 Demo Accounts</h2>
+            <p>For testing purposes, you can use these pre-configured accounts:</p>
+            <ul>
+                <li><strong>Organizer:</strong> username="organizer", password="OrganizerPass123!"</li>
+                <li><strong>Guest:</strong> Register your own guest account using the form above</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Global variable to store the JWT token
+        let authToken = localStorage.getItem('concertAuthToken') || '';
+        
+        // Switch between register and login tabs
+        function switchTab(showTabId, hideTabId) {
+            document.getElementById(showTabId).classList.add('active');
+            document.getElementById(hideTabId).classList.remove('active');
+            
+            // Also update the tab buttons
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(showTabId.split('-')[0])) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+        }
+        
+        // Register a new user
+        async function registerUser() {
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const resultDiv = document.getElementById('register-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Registering...';
+            
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Registration Successful!</strong>
+                        <p>Username: ${data.username}</p>
+                        <p>Email: ${data.email}</p>
+                        <p>Role: ${data.role}</p>
+                        <p>You can now login with your credentials.</p>
+                    `;
+                    // Switch to login tab
+                    switchTab('login-tab', 'register-tab');
+                    document.getElementById('login-username').value = username;
+                    document.getElementById('login-password').value = password;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Registration failed'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Login user
+        async function loginUser() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const resultDiv = document.getElementById('login-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Logging in...';
+            
+            try {
+                // Use form data for login as required by OAuth2PasswordRequestForm
+                const formData = new URLSearchParams();
+                formData.append('username', username);
+                formData.append('password', password);
+                
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    authToken = data.access_token;
+                    localStorage.setItem('concertAuthToken', authToken);
+                    
+                    resultDiv.innerHTML = `
+                        <strong>Login Successful!</strong>
+                        <p>You have been authenticated and received a JWT token.</p>
+                        <div class="token-display">${authToken.substring(0, 20)}...${authToken.substring(authToken.length - 20)}</div>
+                        <p>This token will be used for authenticated requests.</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Login failed'}`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Get current user profile
+        async function getMyProfile() {
+            const resultDiv = document.getElementById('profile-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading profile...';
+            
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>Error:</strong> You must login first to view your profile.';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/attendees/me', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <strong>Profile Information:</strong>
+                        <p>Username: ${data.username}</p>
+                        <p>Email: ${data.email}</p>
+                        <p>Role: ${data.role}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Failed to fetch profile'}`;
+                    
+                    if (response.status === 401) {
+                        authToken = '';
+                        localStorage.removeItem('concertAuthToken');
+                        resultDiv.innerHTML += '<p>Your session has expired. Please login again.</p>';
+                    }
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Get guest list (organizers only)
+        async function getGuestList() {
+            const resultDiv = document.getElementById('guest-list-result');
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading guest list...';
+            
+            if (!authToken) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = '<strong>Error:</strong> You must login first to access this feature.';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/organizer/guest-list', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = '<strong>Guest List:</strong>';
+                    
+                    if (data.guest_list && data.guest_list.length > 0) {
+                        const guestList = document.createElement('ul');
+                        data.guest_list.forEach(guest => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = guest;
+                            guestList.appendChild(listItem);
+                        });
+                        resultDiv.appendChild(guestList);
+                    } else {
+                        resultDiv.innerHTML += '<p>No guests registered yet.</p>';
+                    }
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<strong>Error:</strong> ${data.detail || 'Failed to fetch guest list'}`;
+                    
+                    if (response.status === 403) {
+                        resultDiv.innerHTML += '<p>Access denied. You need to be an ORGANIZER to view the guest list.</p>';
+                    } else if (response.status === 401) {
+                        authToken = '';
+                        localStorage.removeItem('concertAuthToken');
+                        resultDiv.innerHTML += '<p>Your session has expired. Please login again.</p>';
+                    }
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

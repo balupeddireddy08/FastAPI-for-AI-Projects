@@ -161,7 +161,12 @@ def welcome():
     The content from this docstring will appear in the documentation under the
     main description.
     """
-    return {"message": "Welcome to the FastAPI Documentation Demo!"}
+    try:
+        with open("swagger_docx/index.html", "r", encoding="utf-8") as f:
+            from fastapi.responses import HTMLResponse
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return {"message": "Welcome to the FastAPI Documentation Demo!"}
 
 
 @app.get(

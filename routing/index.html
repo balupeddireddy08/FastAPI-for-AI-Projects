@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 Magical Digital Library</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+        }
+        header {
+            background-color: #4a148c;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .tagline {
+            font-style: italic;
+            margin-top: 0.5rem;
+            color: #e1bee7;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #4a148c;
+            border-bottom: 2px solid #e1bee7;
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+        }
+        .links {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .links a {
+            text-decoration: none;
+            color: #4a148c;
+            font-weight: bold;
+        }
+        button {
+            background-color: #7b1fa2;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #9c27b0;
+        }
+        input, select {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+        .result {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            border-left: 4px solid #7b1fa2;
+            display: none;
+        }
+        .api-url {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .book-item {
+            background-color: #f9f4fc;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid #9c27b0;
+        }
+        .book-title {
+            font-weight: bold;
+            color: #4a148c;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        .error {
+            background-color: #ffebee;
+            border-left: 4px solid #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📚 Magical Digital Library</h1>
+        <p class="tagline">Explore FastAPI Routing: Path, Query, and Modular Routes!</p>
+    </header>
+
+    <div class="container">
+        <div class="card">
+            <h2>🏠 Welcome to the Magical Digital Library!</h2>
+            <p>This interface demonstrates various routing techniques in FastAPI. Explore different ways to interact with our library API.</p>
+            <div class="links">
+                <a href="/docs" target="_blank">📚 API Documentation (Swagger UI)</a>
+                <a href="/redoc" target="_blank">📖 Alternative Docs (ReDoc)</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📖 Find Book by ID</h2>
+            <p>Get details about a specific book using path parameters.</p>
+            <select id="book-id">
+                <option value="1">Book ID: 1</option>
+                <option value="2">Book ID: 2</option>
+                <option value="3">Book ID: 3 (Not Found)</option>
+            </select>
+            <button onclick="fetchBookById()">Get Book Details</button>
+            <div id="book-details-result" class="result"></div>
+            <div class="api-url">GET /books/{book_id}</div>
+        </div>
+
+        <div class="card">
+            <h2>🔍 Search Books</h2>
+            <p>Search for books using query parameters.</p>
+            <div class="form-group">
+                <label for="search-keyword">Keyword (required):</label>
+                <input type="text" id="search-keyword" placeholder="Enter search term" value="Fast">
+            </div>
+            <div class="form-group">
+                <label for="max-pages">Max Pages (optional):</label>
+                <input type="number" id="max-pages" placeholder="Maximum pages" value="500">
+            </div>
+            <div class="form-group">
+                <label for="genre-filter">Genre (optional):</label>
+                <select id="genre-filter">
+                    <option value="">Any Genre</option>
+                    <option value="fantasy">Fantasy</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="sci_fi" selected>Science Fiction</option>
+                    <option value="romance">Romance</option>
+                </select>
+            </div>
+            <button onclick="searchBooks()">Search Books</button>
+            <div id="search-result" class="result"></div>
+            <div class="api-url">GET /books/search/?keyword={keyword}&max_pages={max_pages}&genre={genre}</div>
+        </div>
+
+        <div class="card">
+            <h2>🏰 Explore Genre</h2>
+            <p>Browse books by genre using enum path parameters.</p>
+            <select id="genre-name">
+                <option value="fantasy">Fantasy</option>
+                <option value="mystery">Mystery</option>
+                <option value="sci_fi">Science Fiction</option>
+                <option value="romance">Romance</option>
+            </select>
+            <button onclick="exploreGenre()">Explore Genre</button>
+            <div id="genre-result" class="result"></div>
+            <div class="api-url">GET /genres/{genre_name}</div>
+        </div>
+
+        <div class="card">
+            <h2>👤 User Profile</h2>
+            <p>Get user profile by ID (demonstrates APIRouter and Dependencies).</p>
+            <select id="user-id">
+                <option value="101">User ID: 101</option>
+                <option value="102">User ID: 102 (Not Found)</option>
+            </select>
+            <div class="form-group">
+                <label for="library-card">Library Card:</label>
+                <select id="library-card">
+                    <option value="VALID_CARD">Valid Card</option>
+                    <option value="INVALID_CARD">Invalid Card</option>
+                </select>
+            </div>
+            <button onclick="getUserProfile()">Get User Profile</button>
+            <div id="user-result" class="result"></div>
+            <div class="api-url">GET /users/{user_id}</div>
+        </div>
+
+        <div class="card">
+            <h2>📚 Add New Book (Admin)</h2>
+            <p>Add a new book to the library (demonstrates request body with APIRouter).</p>
+            <div class="form-group">
+                <label for="book-title">Title:</label>
+                <input type="text" id="book-title" placeholder="Book title" value="The Art of Routing">
+            </div>
+            <div class="form-group">
+                <label for="book-author">Author:</label>
+                <input type="text" id="book-author" placeholder="Author name" value="API Master">
+            </div>
+            <div class="form-group">
+                <label for="book-genre">Genre:</label>
+                <select id="book-genre">
+                    <option value="fantasy">Fantasy</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="sci_fi" selected>Science Fiction</option>
+                    <option value="romance">Romance</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="admin-library-card">Library Card:</label>
+                <select id="admin-library-card">
+                    <option value="VALID_CARD">Valid Card</option>
+                    <option value="INVALID_CARD">Invalid Card</option>
+                </select>
+            </div>
+            <button onclick="addBook()">Add Book</button>
+            <div id="add-book-result" class="result"></div>
+            <div class="api-url">POST /admin/books/</div>
+        </div>
+
+        <div class="card">
+            <h2>✏️ Update Book (Admin)</h2>
+            <p>Update an existing book's details (demonstrates path parameters and request body).</p>
+            <div class="form-group">
+                <label for="update-book-id">Book ID:</label>
+                <select id="update-book-id">
+                    <option value="1">Book ID: 1</option>
+                    <option value="2">Book ID: 2</option>
+                    <option value="3">Book ID: 3 (Not Found)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="update-book-title">New Title:</label>
+                <input type="text" id="update-book-title" placeholder="New book title" value="Updated FastAPI Guide">
+            </div>
+            <div class="form-group">
+                <label for="update-book-author">New Author:</label>
+                <input type="text" id="update-book-author" placeholder="New author name" value="Code Wizard">
+            </div>
+            <div class="form-group">
+                <label for="update-book-genre">New Genre:</label>
+                <select id="update-book-genre">
+                    <option value="fantasy">Fantasy</option>
+                    <option value="mystery">Mystery</option>
+                    <option value="sci_fi" selected>Science Fiction</option>
+                    <option value="romance">Romance</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="update-library-card">Library Card:</label>
+                <select id="update-library-card">
+                    <option value="VALID_CARD">Valid Card</option>
+                    <option value="INVALID_CARD">Invalid Card</option>
+                </select>
+            </div>
+            <button onclick="updateBook()">Update Book</button>
+            <div id="update-book-result" class="result"></div>
+            <div class="api-url">PUT /admin/books/{book_id}</div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchBookById() {
+            const bookId = document.getElementById('book-id').value;
+            const resultDiv = document.getElementById('book-details-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`/books/${bookId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Book Found</h3>
+                        <div class="book-item">
+                            <div class="book-title">${data.title}</div>
+                            <div>Author: ${data.author}</div>
+                            <div>Genre: ${data.genre}</div>
+                            <div>ID: ${data.id}</div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>Error</h3><p>${error.message}</p>`;
+            }
+        }
+
+        async function searchBooks() {
+            const keyword = document.getElementById('search-keyword').value;
+            const maxPages = document.getElementById('max-pages').value;
+            const genre = document.getElementById('genre-filter').value;
+            const resultDiv = document.getElementById('search-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                let url = `/books/search/?keyword=${encodeURIComponent(keyword)}`;
+                if (maxPages) url += `&max_pages=${maxPages}`;
+                if (genre) url += `&genre=${genre}`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    let html = `
+                        <h3>Search Results</h3>
+                        <p>Query: "${data.query}" | Max Pages: ${data.max_pages || 'Any'} | Genre: ${data.genre || 'Any'}</p>
+                    `;
+                    
+                    if (data.found_books.length > 0) {
+                        data.found_books.forEach(book => {
+                            html += `
+                                <div class="book-item">
+                                    <div class="book-title">${book.title}</div>
+                                    <div>Author: ${book.author}</div>
+                                    <div>Genre: ${book.genre}</div>
+                                    <div>Pages: ${book.pages}</div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += `<p>No books found matching your criteria.</p>`;
+                    }
+                    
+                    resultDiv.innerHTML = html;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>Error</h3><p>${error.message}</p>`;
+            }
+        }
+
+        async function exploreGenre() {
+            const genreName = document.getElementById('genre-name').value;
+            const resultDiv = document.getElementById('genre-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`/genres/${genreName}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Genre Exploration</h3>
+                        <p>${data.message}</p>
+                        <p>Selected genre: ${data.genre}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>Error</h3><p>${error.message}</p>`;
+            }
+        }
+
+        async function getUserProfile() {
+            const userId = document.getElementById('user-id').value;
+            const libraryCard = document.getElementById('library-card').value;
+            const resultDiv = document.getElementById('user-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`/users/${userId}`, {
+                    headers: {
+                        'X-Library-Card': libraryCard
+                    }
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>User Profile</h3>
+                        <p>User ID: ${data.user_id}</p>
+                        <p>Username: ${data.username}</p>
+                        <p>Library Card Status: ${data.card_status}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>Error</h3><p>${error.message}</p>`;
+            }
+        }
+
+        async function addBook() {
+            const title = document.getElementById('book-title').value;
+            const author = document.getElementById('book-author').value;
+            const genre = document.getElementById('book-genre').value;
+            const libraryCard = document.getElementById('admin-library-card').value;
+            const resultDiv = document.getElementById('add-book-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch('/admin/books/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Library-Card': libraryCard
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        author: author,
+                        genre: genre
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Book Added</h3>
+                        <p>${data.message}</p>
+                        <p>Title: ${data.book_title}</p>
+                        <p>Genre: ${data.genre}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>Error</h3><p>${error.message}</p>`;
+            }
+        }
+
+        async function updateBook() {
+            const bookId = document.getElementById('update-book-id').value;
+            const title = document.getElementById('update-book-title').value;
+            const author = document.getElementById('update-book-author').value;
+            const genre = document.getElementById('update-book-genre').value;
+            const libraryCard = document.getElementById('update-library-card').value;
+            const resultDiv = document.getElementById('update-book-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch(`/admin/books/${bookId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Library-Card': libraryCard
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        author: author,
+                        genre: genre
+                    })
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>Book Updated</h3>
+                        <p>${data.message}</p>
+                        <p>New Title: ${data.new_title}</p>
+                        <p>New Genre: ${data.new_genre}</p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
+                }
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<h3>Error</h3><p>${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html> 

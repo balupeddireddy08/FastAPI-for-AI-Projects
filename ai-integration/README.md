@@ -21,6 +21,83 @@ Our AI assistant demonstrates cutting-edge integration through:
 - 🔍 Semantic search across documents
 - ⚡ Streaming responses and real-time chat
 
+## 📊 AI Integration Architecture
+
+```mermaid
+graph TD
+    subgraph "Jarvis AI Platform"
+    A["FastAPI Application"]
+    end
+    
+    subgraph "AI Components"
+    B["LangChain<br/>AI Workflow Orchestration"]
+    C["Google Gemini<br/>Language Model"]
+    D["Vector Database<br/>Document Storage"]
+    E["AI Agents<br/>Tool Integration"]
+    F["Conversation Memory<br/>Context Retention"]
+    end
+    
+    A --> B
+    B --> C
+    B --> D
+    B --> E
+    B --> F
+    
+    subgraph "API Endpoints"
+    G["/ai/chat<br/>Conversational AI"]
+    H["/ai/upload-document<br/>Document Processing"]
+    I["/ai/ask-document<br/>Document Q&A"]
+    J["/ai/agent<br/>Tool-using Agent"]
+    K["/ai/stream<br/>Streaming Responses"]
+    end
+    
+    A --> G
+    A --> H
+    A --> I
+    A --> J
+    A --> K
+    
+    G --> F
+    G --> C
+    
+    H --> D
+    
+    I --> D
+    I --> C
+    
+    J --> E
+    J --> C
+    
+    K --> C
+    
+    subgraph "AI Tools"
+    L["Calculator Tool"]
+    M["Weather Tool"]
+    N["Search Tool"]
+    end
+    
+    E --> L
+    E --> M
+    E --> N
+```
+
+## 📋 AI Integration Concepts Summary Table
+
+| AI Component | Description | Implementation | Benefits |
+|--------------|-------------|----------------|----------|
+| **LangChain** | AI workflow orchestration | `from langchain_google_genai import ChatGoogleGenerativeAI` | Simplified AI integration patterns |
+| **Language Models** | Text generation and understanding | `llm = ChatGoogleGenerativeAI(model="gemini-pro")` | Natural language processing capabilities |
+| **Conversation Memory** | Context retention | `ConversationBufferMemory(return_messages=True)` | Maintain context across multiple interactions |
+| **Vector Databases** | Semantic document storage | `Chroma(persist_directory="./chroma_db")` | Efficient similarity search for documents |
+| **Embeddings** | Text-to-vector conversion | `GoogleGenerativeAIEmbeddings(model="models/embedding-001")` | Convert text to numerical representations |
+| **Document Loaders** | File processing | `PyPDFLoader(file_path)` | Extract text from various file formats |
+| **Text Splitters** | Document chunking | `RecursiveCharacterTextSplitter(chunk_size=1000)` | Break documents into manageable pieces |
+| **Retrieval QA** | Document question answering | `RetrievalQA.from_chain_type(llm, retriever)` | Answer questions based on document content |
+| **AI Agents** | Tool-using AI | `AgentExecutor(agent=agent, tools=tools)` | AI that can use external tools to solve tasks |
+| **Custom Tools** | Extend AI capabilities | `class WeatherTool(BaseTool)` | Give AI access to external systems |
+| **Streaming Responses** | Real-time AI output | `async for chunk in response.aiter_text()` | Show AI responses as they're generated |
+| **Async Processing** | Non-blocking AI operations | `async def chat_with_ai()` | Handle multiple AI requests efficiently |
+
 ## 🚀 Core AI Integration Concepts
 
 ### **1. LangChain Setup and Models**
