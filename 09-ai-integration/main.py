@@ -23,6 +23,7 @@ from langchain.prompts import PromptTemplate
 from langchain.agents import initialize_agent, AgentType, Tool
 from langchain.tools import BaseTool
 from langchain.callbacks.base import BaseCallbackHandler
+from fastapi.responses import HTMLResponse
 
 # Google AI imports  
 import google.generativeai as genai
@@ -262,39 +263,11 @@ async def process_with_gemini(prompt: str, personality: AssistantPersonality) ->
 
 # === MAIN AI ENDPOINTS ===
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def ai_platform_home():
-    """🏠 Welcome to Jarvis AI - Your Personal Assistant!"""
-    try:
-        with open("ai-integration/index.html", "r", encoding="utf-8") as f:
-            from fastapi.responses import HTMLResponse
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return {
-            "message": "🤖 Welcome to Jarvis AI!",
-            "tagline": "Your intelligent personal assistant powered by advanced AI ✨",
-            "capabilities": [
-                "💬 Natural conversation with memory",
-                "📚 Document analysis and Q&A",
-                "🔧 Code generation and debugging", 
-                "🎨 Creative writing and brainstorming",
-                "📊 Data analysis and insights",
-                "🌍 Web research and fact-checking",
-                "🛠️ Task automation and planning",
-                "🧠 Advanced problem solving"
-            ],
-            "ai_models": {
-                "primary": "Google Gemini Pro",
-                "framework": "LangChain",
-                "embeddings": "Google Palm Embeddings",
-                "memory": "Conversational Buffer"
-            },
-            "quick_start": {
-                "chat": "POST /chat - Start a conversation",
-                "upload": "POST /documents/upload - Upload documents to analyze",
-                "tasks": "POST /tasks/create - Create AI-powered tasks"
-            }
-        }
+    """Serves the main HTML page for the Jarvis AI Platform."""
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 # === CONVERSATION ENDPOINTS ===
 

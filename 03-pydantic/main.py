@@ -1,5 +1,6 @@
 # --- Imports ---
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import List
 from enum import Enum
@@ -14,6 +15,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Serve the HTML file for the root path
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    with open("index.html", "r") as f:
+        return f.read()
 
 # --- Enum Definitions ---
 # Enums define a fixed set of allowed values, ensuring data consistency and preventing invalid entries.
@@ -94,7 +100,7 @@ class SmartRecipe(BaseModel):
 # --- FastAPI Endpoint Definitions ---
 # These functions define the API routes and handle incoming requests.
 
-@app.get("/")
+@app.get("/welcome")
 def welcome_message():
     """Welcome to the Recipe Master API!"""
     # This endpoint simply returns a welcome message to the API.

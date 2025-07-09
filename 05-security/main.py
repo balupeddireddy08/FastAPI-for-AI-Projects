@@ -12,6 +12,7 @@ from enum import Enum
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from fastapi.responses import HTMLResponse
 
 # =======================================================================
 #
@@ -202,39 +203,31 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
         raise credentials_exception
     return user
 
+# This dependency is a simple way to require a specific role.
+# It uses `get_current_user` to get the authenticated user first,
+# and then checks if their role is in the list of allowed roles.
 def require_roles(required_roles: List[UserRole]):
-    """
-    This is a dependency *factory* for authorization (Role-Based Access Control).
-    It creates a role-checking dependency that ensures a user is allowed to access an endpoint.
-    It's like having a special guard who only lets people with "ORGANIZER" wristbands backstage.
-    """
     def role_checker(current_user: Annotated[UserInDB, Depends(get_current_user)]):
-        """
-        This is the actual dependency. It first gets the `current_user` (authentication).
-        Then, it checks if the user's role is in the list of required roles (authorization).
-        If not, it raises an HTTP 403 Forbidden error.
-        """
         if current_user.role not in required_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. Required roles: {[role.value for role in required_roles]}"
+                detail=f"Access denied. User does not have one of the required roles: {', '.join(r.value for r in required_roles)}",
             )
         return current_user
     return role_checker
 
 
 # --- 7. API ENDPOINTS ---
-# These are the actual URLs of our application.
+# These are the actual pages of our API.
 
-@app.get("/")
+@app.get("/", response_class=HTMLResponse)
 def read_root():
-    """A welcoming, public endpoint that anyone can access."""
-    try:
-        with open("security/index.html", "r", encoding="utf-8") as f:
-            from fastapi.responses import HTMLResponse
-            return HTMLResponse(content=f.read())
-    except FileNotFoundError:
-        return {"message": "Welcome to the Secure Concert API! See /docs for the event lineup."}
+    """
+    Serves the main HTML page for the demo.
+    """
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
+
 
 @app.post("/auth/register", status_code=status.HTTP_201_CREATED, response_model=User)
 async def register_user(user_data: UserCreate, request: Request):

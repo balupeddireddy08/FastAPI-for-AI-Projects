@@ -162,7 +162,7 @@ def welcome():
     main description.
     """
     try:
-        with open("swagger_docx/index.html", "r", encoding="utf-8") as f:
+        with open("index.html", "r", encoding="utf-8") as f:
             from fastapi.responses import HTMLResponse
             return HTMLResponse(content=f.read())
     except FileNotFoundError:

@@ -36,7 +36,7 @@ def get_library_card(x_library_card: Optional[str] = Header(None)):
 async def library_entrance():
     """Welcome to the Simplified Digital Library! ✨"""
     try:
-        with open("routing/index.html", "r", encoding="utf-8") as f:
+        with open("index.html", "r", encoding="utf-8") as f:
             from fastapi.responses import HTMLResponse
             return HTMLResponse(content=f.read())
     except FileNotFoundError:

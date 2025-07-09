@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
 
 # Create a FastAPI application instance for our Coffee Shop
 app = FastAPI(
@@ -7,8 +8,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# Serve the HTML file for the root path
+@app.get("/", response_class=HTMLResponse)
+async def read_root():
+    with open("index.html", "r") as f:
+        return f.read()
+
 # Welcome endpoint - like greeting customers at the door
-@app.get("/")
+@app.get("/welcome")
 def welcome_to_coffee_shop():
     """Welcome message for customers visiting our coffee shop API."""
     return {
