@@ -1,6 +1,6 @@
 # 🚀 FastAPI for AI Projects - Learn by Building Real Apps!
 
-Transform from beginner to API expert by building **10 exciting projects** - from a coffee shop management system to an AI-powered assistant! Each project teaches core FastAPI concepts through hands-on development.
+Transform from beginner to API expert by building **9 exciting projects** - from a coffee shop management system to an AI-powered assistant! Each project teaches core FastAPI concepts through hands-on development.
 
 ## 🎯 What You'll Build
 
@@ -10,12 +10,11 @@ Transform from beginner to API expert by building **10 exciting projects** - fro
 | 2 | 🎮 Game Character Builder | Type Hints |
 | 3 | 👨‍🍳 Recipe Master | Pydantic Validation |
 | 4 | 📚 Digital Library | Routing & Organization |
-| 5 | 📱 InstaConnect Social | Request/Response |
-| 6 | 🤖 AI Assistant Marketplace | Documentation |
-| 7 | 🎮 Real-time Gaming Platform | Async Programming |
+| 5 | 🎟️ Secure Concert API | Security & Authentication |
+| 6 | 🤖 AI Assistant Platform | Documentation |
+| 7 | 🛰️ Cosmic Rover Control | Async Programming |
 | 8 | 🎬 StreamVerse Platform | Streaming & WebSockets |
-| 9 | 🏦 SecureBank Platform | Security & Authentication |
-| 10 | 🤖 Jarvis AI Assistant | AI Integration |
+| 9 | 🤖 Jarvis AI Assistant | AI Integration |
 
 ## 📊 Visual Learning with Diagrams
 
@@ -72,8 +71,8 @@ Create production-ready systems with streaming, security, and AI.
 ## 🚀 Start Your Journey
 
 Choose your path:
-- 🆕 **Complete Beginner?** → [Coffee Shop Magic](01-introduction/)
-- 🔄 **Some Experience?** → [Game Character Builder](02-type-hints/)  
-- ⚡ **Ready for Advanced?** → [Real-time Gaming](07-async/)
+- 🆕 **Complete Beginner?** → [Coffee Shop Magic](introduction/)
+- 🔄 **Some Experience?** → [Game Character Builder](type-hints/)  
+- ⚡ **Ready for Advanced?** → [Cosmic Rover Control](async/)
 
 Every expert was once a beginner. Start building today! 🎯 

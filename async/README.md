@@ -112,7 +112,7 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
         await asyncio.sleep(0.5)
         return fake_db["restaurants"].get(restaurant_id, {"error": "Restaurant not found"})
     ```
--   **Try it**: Visit [http://localhost:8000/status](http://localhost:8000/status).
+-   **Try it**: Visit [http://localhost:8000/restaurants/resto_123](http://localhost:8000/restaurants/resto_123).
 
 ### 2. Concurrent Tasks: Ordering Coffee & A Sandwich
 -   **Analogy**: Instead of ordering and waiting for coffee (2 mins) and *then* ordering and waiting for a sandwich (3 mins) for a total of 5 mins, you order both at once. You get everything in 3 minutes (the time of the longest task).
@@ -145,7 +145,7 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
         menu, reviews = await asyncio.gather(menu_task, reviews_task)
         return {"info": fake_db["restaurants"].get(restaurant_id), **menu, **reviews}
     ```
--   **Try it**: Visit [http://localhost:8000/users/123/dashboard](http://localhost:8000/users/123/dashboard). Check your terminal to see the tasks running in parallel.
+-   **Try it**: Visit [http://localhost:8000/restaurants/resto_123/full-details](http://localhost:8000/restaurants/resto_123/full-details). Check your terminal to see the tasks running in parallel.
 
 ### 3. Background Tasks: The Online Shopping Experience
 -   **Analogy**: You place an order online and get an "Order Confirmed" message instantly. The company handles the actual packing and shipping later, in the background. You don't have to wait on the website for that to finish.
@@ -184,9 +184,9 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
         background_tasks.add_task(process_payment_and_notify_kitchen, order_id, 15.50)
         return {"message": "Order placed successfully!", "order_id": order_id}
     ```
--   **How to test**: Keep the [http://localhost:8000](http://localhost:8000) page open. In a new tab, visit the API docs for the "POST" endpoint [here](http://localhost:8000/docs#/default/add_update_and_broadcast_new_update_and_broadcast_post). Click "Try it out", enter a message, and click "Execute". You'll get an immediate response. Switch back to the home page tab. After a 3-second delay, you'll see the background task complete by broadcasting a message to the "Live Update Feed".
+-   **How to test**: From the homepage UI, click the "Place Order" button. You'll get an immediate response. Check your terminal to see the background tasks running after a short delay. Alternatively, visit the API docs [here](http://localhost:8000/docs), find the `POST /order` endpoint, and use it directly.
 
-### 4. Streaming Responses (SSE): The Live News Ticker
+### 4. Streaming Responses (SSE): The Live News Ticker / Order Tracker
 -   **Analogy**: A news station continuously pushes live headlines to your TV screen. It's a one-way stream of information that you just receive.
 -   **Concept**: Server-Sent Events (SSE) allow the server to push a continuous stream of data to the client over a single HTTP connection.
 -   **Code Block**:
@@ -215,9 +215,9 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
     ```
--   **Try it**: Watch the "Live System Monitor" on the homepage. It receives a new update from the server every second.
+-   **Try it**: Watch the "Live Order Tracker" on the homepage after placing an order. It receives a new update from the server every few seconds.
 
-### 5. WebSockets: The Phone Call
+### 5. WebSockets: The Phone Call / Support Chat
 -   **Analogy**: Unlike the one-way news ticker, a phone call is a two-way street. Both people can talk and listen at any time. This is what WebSockets enable.
 -   **Concept**: WebSockets provide a persistent, two-way communication channel between the client and server, perfect for real-time chat.
 -   **Code Block**:
@@ -256,4 +256,4 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
             manager.disconnect(websocket)
             await manager.broadcast("A user has left the chat.")
     ```
--   **Try it**: Open the homepage in two separate browser windows. Use the "Live Update Feed" chat box to send messages from one window and watch them appear instantly in the other. 
+-   **Try it**: Open the homepage in two separate browser windows. Use the "Live Support Chat" box to send messages from one window and watch them appear instantly in the other. 
