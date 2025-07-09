@@ -1,6 +1,6 @@
 # 🚀 Section 7: FastAPI Async Showcase
 
-This section provides a single, cohesive example to demonstrate FastAPI's core asynchronous features. We use a simple "Live Status Dashboard" concept, explained with real-world analogies, to tie everything together.
+This section provides a single, cohesive example to demonstrate FastAPI's core asynchronous features. We use a simple **Food Delivery App** concept, explained with real-world analogies, to tie everything together.
 
 ## 🎯 What You'll Learn
 
@@ -9,8 +9,8 @@ This example connects the following concepts using analogies:
 -   **The Skilled Waiter** (`async def`): How to handle requests efficiently without blocking.
 -   **Ordering Coffee & A Sandwich** (`asyncio.gather`): How to run multiple tasks concurrently to save time.
 -   **The Online Shopping Experience** (`BackgroundTasks`): How to run "fire-and-forget" jobs after a response is sent.
--   **The Live News Ticker** (`StreamingResponse`): How to push a one-way stream of data from the server.
--   **The Phone Call** (`WebSocket`): How to enable real-time, two-way communication.
+-   **The Live Order Tracker** (`StreamingResponse`): How to push a one-way stream of data from the server.
+-   **The Support Chat** (`WebSocket`): How to enable real-time, two-way communication.
 
 ## 📊 FastAPI Async Concepts
 
@@ -58,14 +58,14 @@ graph TD
 |---------------|-------------------|----------------|----------|
 | **async def** | The Skilled Waiter | `async def get_restaurant_info()` | Handle multiple requests without blocking |
 | **await** | Waiting for an order | `await asyncio.sleep(1)` | Pause execution without blocking the thread |
-| **asyncio.gather** | Ordering Coffee & Sandwich | `await asyncio.gather(task1, task2)` | Run multiple operations concurrently |
-| **BackgroundTasks** | Online Shopping Experience | `background_tasks.add_task(process_payment)` | Process tasks after sending response |
-| **StreamingResponse** | Live News Ticker | `return StreamingResponse(generator())` | Send continuous updates to client |
-| **yield** | Delivering updates one by one | `yield f"data: {json.dumps(data)}\n\n"` | Stream data chunks incrementally |
-| **WebSocket** | Phone Call | `@app.websocket("/ws/chat")` | Two-way real-time communication |
-| **ConnectionManager** | Call Center | `manager.broadcast(message)` | Manage multiple WebSocket connections |
-| **WebSocketDisconnect** | Hanging up | `except WebSocketDisconnect` | Handle connection termination |
-| **Server-Sent Events** | Radio Broadcast | `media_type="text/event-stream"` | One-way streaming protocol |
+| **asyncio.gather**| Ordering Coffee & Sandwich | `await asyncio.gather(task1, task2)` | Run multiple operations concurrently |
+| **BackgroundTasks**| Online Shopping Experience | `background_tasks.add_task(...)` | Process tasks after sending response |
+| **StreamingResponse**| Live Order Tracker | `return StreamingResponse(...)` | Send continuous updates to client |
+| **yield** | Delivering updates one by one | `yield f"data: ..."` | Stream data chunks incrementally |
+| **WebSocket** | Phone Call / Support Chat | `@app.websocket("/ws/support-chat")`| Two-way real-time communication |
+| **ConnectionManager**| Call Center | `manager.broadcast(message)` | Manage multiple WebSocket connections |
+| **WebSocketDisconnect**| Hanging up | `except WebSocketDisconnect` | Handle connection termination |
+| **Server-Sent Events**| Radio Broadcast / Live Feed | `media_type="text/event-stream"` | One-way streaming protocol |
 
 ---
 
@@ -73,7 +73,7 @@ graph TD
 
 1.  **Navigate to the directory:**
     ```bash
-    cd async
+    cd 07-async
     ```
 
 2.  **Install dependencies:**
@@ -184,10 +184,10 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
         background_tasks.add_task(process_payment_and_notify_kitchen, order_id, 15.50)
         return {"message": "Order placed successfully!", "order_id": order_id}
     ```
--   **How to test**: From the homepage UI, click the "Place Order" button. You'll get an immediate response. Check your terminal to see the background tasks running after a short delay. Alternatively, visit the API docs [here](http://localhost:8000/docs), find the `POST /order` endpoint, and use it directly.
+-   **How to test**: From the homepage UI at [http://localhost:8000](http://localhost:8000), click the "Place Order for a Spicy Curry" button. You'll get an immediate response, and you can see the background task processing in your terminal.
 
-### 4. Streaming Responses (SSE): The Live News Ticker / Order Tracker
--   **Analogy**: A news station continuously pushes live headlines to your TV screen. It's a one-way stream of information that you just receive.
+### 4. Streaming Responses (SSE): The Live Order Tracker
+-   **Analogy**: A live order tracker page. The server continuously pushes updates to your phone (e.g., "Preparing" -> "Out for Delivery"). It's a one-way stream of information.
 -   **Concept**: Server-Sent Events (SSE) allow the server to push a continuous stream of data to the client over a single HTTP connection.
 -   **Code Block**:
     ```python
@@ -215,10 +215,10 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
     ```
--   **Try it**: Watch the "Live Order Tracker" on the homepage after placing an order. It receives a new update from the server every few seconds.
+-   **Try it**: Watch the "Live Order Tracker" on the homepage after placing an order. It receives a new status update from the server every few seconds.
 
 ### 5. WebSockets: The Phone Call / Support Chat
--   **Analogy**: Unlike the one-way news ticker, a phone call is a two-way street. Both people can talk and listen at any time. This is what WebSockets enable.
+-   **Analogy**: A phone call with your delivery driver. Both of you can speak and listen at any time. This real-time, two-way communication is exactly what WebSockets are for.
 -   **Concept**: WebSockets provide a persistent, two-way communication channel between the client and server, perfect for real-time chat.
 -   **Code Block**:
     ```python

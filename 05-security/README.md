@@ -183,7 +183,7 @@ To get started and see these concepts in action, follow these steps:
 
 1.  **Navigate to the directory:**
     ```bash
-    cd security
+    cd 05-security
     ```
 
 2.  **Install the required packages:**

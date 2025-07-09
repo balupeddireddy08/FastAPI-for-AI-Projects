@@ -6,14 +6,14 @@ Transform from beginner to API expert by building **9 exciting projects** - from
 
 | Section | Project | Core Concept | 
 |---------|---------|--------------|
-| 1 | ☕ Coffee Shop API | FastAPI Basics |
+| 1 | ☕ Brew Master Coffee Shop | FastAPI Basics |
 | 2 | 🎮 Game Character Builder | Type Hints |
-| 3 | 👨‍🍳 Recipe Master | Pydantic Validation |
-| 4 | 📚 Digital Library | Routing & Organization |
+| 3 | 👨‍🍳 Recipe Master API | Pydantic Validation |
+| 4 | 📚 Magical Digital Library | Routing & Organization |
 | 5 | 🎟️ Secure Concert API | Security & Authentication |
-| 6 | 🤖 AI Assistant Platform | Documentation |
-| 7 | 🛰️ Cosmic Rover Control | Async Programming |
-| 8 | 🎬 StreamVerse Platform | Streaming & WebSockets |
+| 6 | 🚀 FastAPI Documentation Demo | Documentation |
+| 7 | 🚚 Food Delivery App | Async Programming |
+| 8 | 🛰️ Cosmic Rover Control | Streaming & WebSockets |
 | 9 | 🤖 Jarvis AI Assistant | AI Integration |
 
 ## 📊 Visual Learning with Diagrams
@@ -71,8 +71,8 @@ Create production-ready systems with streaming, security, and AI.
 ## 🚀 Start Your Journey
 
 Choose your path:
-- 🆕 **Complete Beginner?** → [Coffee Shop Magic](introduction/)
-- 🔄 **Some Experience?** → [Game Character Builder](type-hints/)  
-- ⚡ **Ready for Advanced?** → [Cosmic Rover Control](async/)
+- 🆕 **Complete Beginner?** → [Coffee Shop Magic](01-introduction/)
+- 🔄 **Some Experience?** → [Game Character Builder](02-type-hints/)  
+- ⚡ **Ready for Advanced?** → [Food Delivery App](07-async/)
 
 Every expert was once a beginner. Start building today! 🎯 

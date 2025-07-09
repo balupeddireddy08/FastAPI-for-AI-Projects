@@ -1,25 +1,25 @@
-# 🤖 Section 10: AI Integration - Jarvis AI Personal Assistant Platform
+# 🤖 Section 9: AI Integration - Jarvis AI Personal Assistant Platform
 
 Master **AI integration** by building an intelligent personal assistant! Learn how to integrate LangChain, Google Gemini, vector databases, and AI agents to create a powerful AI-driven platform using FastAPI.
 
 ## 🎯 What You'll Learn
 
-- LangChain integration for AI workflows
-- Google Gemini API for language models
-- Vector databases for semantic search
-- AI agent creation and tool usage
-- Streaming AI responses and conversation memory
+- LangChain integration for AI workflows.
+- Google Gemini API for powerful language models.
+- Vector databases for semantic search and document Q&A.
+- Building AI agents with custom tools for autonomous task execution.
+- Streaming AI responses for a real-time chat experience.
+- Managing conversation memory for contextual discussions.
 
 ## 🤖 Meet Jarvis AI Platform
 
-Our AI assistant demonstrates cutting-edge integration through:
+Our AI assistant platform demonstrates cutting-edge integration through:
 
 **Key Features:**
-- 💬 Conversational AI with memory
-- 📚 Document Q&A and knowledge retrieval
-- 🛠️ AI agents with custom tools
-- 🔍 Semantic search across documents
-- ⚡ Streaming responses and real-time chat
+- 💬 **Conversational AI**: Engage in intelligent conversations with memory.
+- 📚 **Document Q&A**: Upload documents and ask questions about their content.
+- 🛠️ **AI Agents**: Autonomous agents that can use tools like a calculator or web search.
+- ⚡ **Streaming Responses**: Get real-time AI feedback as it's being generated.
 
 ## 📊 AI Integration Architecture
 
@@ -44,11 +44,11 @@ graph TD
     B --> F
     
     subgraph "API Endpoints"
-    G["/ai/chat<br/>Conversational AI"]
-    H["/ai/upload-document<br/>Document Processing"]
-    I["/ai/ask-document<br/>Document Q&A"]
-    J["/ai/agent<br/>Tool-using Agent"]
-    K["/ai/stream<br/>Streaming Responses"]
+    G["/chat<br/>Conversational AI"]
+    H["/documents/upload<br/>Document Processing"]
+    I["/documents/{doc_id}/chat<br/>Document Q&A"]
+    J["/agents/analyze<br/>Tool-using Agent"]
+    K["/chat/stream/{conv_id}<br/>Streaming Responses"]
     end
     
     A --> G
@@ -85,81 +85,46 @@ graph TD
 
 | AI Component | Description | Implementation | Benefits |
 |--------------|-------------|----------------|----------|
-| **LangChain** | AI workflow orchestration | `from langchain_google_genai import ChatGoogleGenerativeAI` | Simplified AI integration patterns |
-| **Language Models** | Text generation and understanding | `llm = ChatGoogleGenerativeAI(model="gemini-pro")` | Natural language processing capabilities |
-| **Conversation Memory** | Context retention | `ConversationBufferMemory(return_messages=True)` | Maintain context across multiple interactions |
-| **Vector Databases** | Semantic document storage | `Chroma(persist_directory="./chroma_db")` | Efficient similarity search for documents |
-| **Embeddings** | Text-to-vector conversion | `GoogleGenerativeAIEmbeddings(model="models/embedding-001")` | Convert text to numerical representations |
+| **LangChain** | AI workflow orchestration | `from langchain.llms import GooglePalm` | Simplified AI integration patterns |
+| **Language Models** | Text generation and understanding | `llm = ChatGooglePalm(model_name="...")` | Natural language processing capabilities |
+| **Conversation Memory** | Context retention | `ConversationBufferWindowMemory(k=5)` | Maintain context across multiple interactions |
+| **Vector Databases** | Semantic document storage | `FAISS.from_documents(docs, embeddings)` | Efficient similarity search for documents |
+| **Embeddings** | Text-to-vector conversion | `GooglePalmEmbeddings()` | Convert text to numerical representations |
 | **Document Loaders** | File processing | `PyPDFLoader(file_path)` | Extract text from various file formats |
-| **Text Splitters** | Document chunking | `RecursiveCharacterTextSplitter(chunk_size=1000)` | Break documents into manageable pieces |
-| **Retrieval QA** | Document question answering | `RetrievalQA.from_chain_type(llm, retriever)` | Answer questions based on document content |
-| **AI Agents** | Tool-using AI | `AgentExecutor(agent=agent, tools=tools)` | AI that can use external tools to solve tasks |
+| **Text Splitters** | Document chunking | `RecursiveCharacterTextSplitter(...)` | Break documents into manageable pieces |
+| **Retrieval QA** | Document question answering | `ConversationalRetrievalChain.from_llm(...)` | Answer questions based on document content |
+| **AI Agents** | Tool-using AI | `initialize_agent(tools, llm, ...)` | AI that can use external tools to solve tasks |
 | **Custom Tools** | Extend AI capabilities | `class WeatherTool(BaseTool)` | Give AI access to external systems |
-| **Streaming Responses** | Real-time AI output | `async for chunk in response.aiter_text()` | Show AI responses as they're generated |
-| **Async Processing** | Non-blocking AI operations | `async def chat_with_ai()` | Handle multiple AI requests efficiently |
+| **Streaming Responses** | Real-time AI output | `StreamingResponse(generate_streaming_response())` | Show AI responses as they're generated |
+| **Async Processing** | Non-blocking AI operations | `async def chat_with_jarvis()` | Handle multiple AI requests efficiently |
 
 ## 🚀 Core AI Integration Concepts
 
 ### **1. LangChain Setup and Models**
 
 ```python
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.llms import GooglePalm
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
-from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferWindowMemory
 from fastapi import FastAPI
 import os
 
 app = FastAPI(title="🤖 Jarvis AI Platform")
 
-# Initialize Google Gemini model
-os.environ["GOOGLE_API_KEY"] = "your-api-key-here"
-llm = ChatGoogleGenerativeAI(
-    model="gemini-pro",
-    temperature=0.7,
-    convert_system_message_to_human=True
-)
-
-class ChatRequest(BaseModel):
-    message: str
-    conversation_id: Optional[str] = None
-    use_memory: bool = True
-
-class ChatResponse(BaseModel):
-    response: str
-    conversation_id: str
-    sources: Optional[List[str]] = None
-
-@app.post("/ai/chat", response_model=ChatResponse)
-async def chat_with_ai(request: ChatRequest):
-    """Basic AI chat with conversation memory"""
+# Initialize AI models
+try:
+    # Gemini Pro for general conversations
+    gemini_model = genai.GenerativeModel('gemini-pro')
     
-    # Create conversation memory
-    memory = ConversationBufferMemory(return_messages=True)
-    
-    # Load previous conversation if exists
-    if request.conversation_id and request.use_memory:
-        previous_messages = load_conversation(request.conversation_id)
-        for msg in previous_messages:
-            memory.chat_memory.add_message(msg)
-    
-    # Add current message to memory
-    memory.chat_memory.add_user_message(request.message)
-    
-    # Get AI response
-    messages = memory.chat_memory.messages
-    response = await llm.ainvoke(messages)
-    
-    # Add AI response to memory
-    memory.chat_memory.add_ai_message(response.content)
-    
-    # Save conversation
-    conversation_id = request.conversation_id or generate_conversation_id()
-    save_conversation(conversation_id, memory.chat_memory.messages)
-    
-    return ChatResponse(
-        response=response.content,
-        conversation_id=conversation_id
+    # LangChain integration with Google Palm
+    llm = ChatGooglePalm(
+        model_name="models/chat-bison-001",
+        temperature=0.7,
+        max_output_tokens=1024
     )
+    
+    # Embeddings for document processing
+    embeddings = GooglePalmEmbeddings()
 ```
 
 ### **2. Document Q&A with Vector Search**
@@ -253,14 +218,27 @@ async def ask_document(request: DocumentQuestion):
     )
 ```
 
-### **3. AI Agents with Tools**
+### **3. AI Agents with Custom Tools**
 
 ```python
-from langchain.agents import Tool, AgentExecutor, create_react_agent
+from langchain.agents import initialize_agent, AgentType, Tool
 from langchain.tools import BaseTool
-from langchain import hub
-import requests
-import json
+
+# Define custom tools (e.g., Calculator, WebSearch)
+class CalculatorTool(BaseTool):
+    name = "calculator"
+    description = "Perform mathematical calculations"
+    
+    def _run(self, expression: str) -> str:
+        try:
+            # Safe evaluation of mathematical expressions
+            result = eval(expression, {"__builtins__": {}}, {
+                "abs": abs, "round": round, "min": min, "max": max,
+                "sum": sum, "pow": pow, "sqrt": lambda x: x**0.5
+            })
+            return f"Result: {result}"
+        except:
+            return "Invalid mathematical expression"
 
 class WeatherTool(BaseTool):
     name = "weather"
@@ -282,30 +260,13 @@ class WeatherTool(BaseTool):
         except:
             return "Weather service unavailable"
 
-class CalculatorTool(BaseTool):
-    name = "calculator"
-    description = "Perform mathematical calculations"
-    
-    def _run(self, expression: str) -> str:
-        try:
-            # Safe evaluation of mathematical expressions
-            result = eval(expression, {"__builtins__": {}}, {
-                "abs": abs, "round": round, "min": min, "max": max,
-                "sum": sum, "pow": pow, "sqrt": lambda x: x**0.5
-            })
-            return f"Result: {result}"
-        except:
-            return "Invalid mathematical expression"
-
 # Initialize tools and agent
-tools = [WeatherTool(), CalculatorTool()]
+tools = [CalculatorTool(), WebSearchTool(), WeatherTool()]
 
-# Get ReAct prompt template
-prompt = hub.pull("hwchase17/react")
-
-# Create agent
-agent = create_react_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+# Initialize the agent
+agent_chain = initialize_agent(
+    tools, llm, agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION, verbose=True
+)
 
 class AgentRequest(BaseModel):
     task: str
@@ -316,7 +277,7 @@ async def run_agent(request: AgentRequest):
     """Run AI agent with access to tools"""
     
     try:
-        result = agent_executor.invoke({
+        result = agent_chain.invoke({
             "input": request.task,
             "max_iterations": request.max_iterations
         })
@@ -524,80 +485,40 @@ async def list_available_tools()
 async def create_custom_tool(tool_definition: ToolDefinition)
 ```
 
-## 🛠️ Running Jarvis AI
+## 🛠️ Running the Jarvis AI Platform
 
-```bash
-cd 10-ai-integration
-pip install langchain langchain-google-genai chromadb
-uvicorn main:app --reload
+1.  **Navigate to the directory:**
+    ```bash
+    cd 09-ai-integration
+    ```
 
-# Test AI features:
-# POST /ai/chat (basic chat)
-# POST /ai/chat-stream (streaming responses)
-# POST /ai/upload-document (document Q&A)
-# WebSocket: ws://localhost:8000/ai/ws-chat/user123
-```
+2.  **Install dependencies:**
+    This project requires `fastapi`, `uvicorn`, `langchain`, `google-generativeai`, `faiss-cpu`, and `pypdf`.
+    ```bash
+    pip install "fastapi[all]" langchain google-generativeai "langchain[google_palm]" faiss-cpu pypdf
+    ```
 
-## 📊 AI Integration Architecture
+3.  **Set up your API Key:**
+    In `main.py`, replace `"your-google-api-key-here"` with your actual Google AI API key.
+    ```python
+    # In main.py
+    os.environ["GOOGLE_API_KEY"] = "your-google-api-key-here" 
+    ```
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Language Model** | Google Gemini Pro | Core AI reasoning |
-| **Vector Database** | ChromaDB | Document embeddings |
-| **Memory** | LangChain Memory | Conversation context |
-| **Agents** | LangChain Agents | Tool-based AI actions |
-| **Streaming** | FastAPI SSE/WebSocket | Real-time responses |
+4.  **Run the application:**
+    ```bash
+    uvicorn main:app --reload
+    ```
+    The server will start, and you can access the API at `http://localhost:8000`.
 
-## 🎮 Practice Exercises
+## 🎮 Trying Out the Endpoints
 
-1. **🧠 Custom AI Agent**: Build agent with web search and API tools
-2. **📚 Knowledge Base**: Create domain-specific document Q&A system
-3. **🎯 AI Workflows**: Implement multi-step AI task automation
-4. **📊 Analytics Dashboard**: Build AI conversation insights panel
+Once the server is running, you can use the interactive docs at [http://localhost:8000/docs](http://localhost:8000/docs) to test the features:
 
-## 💡 AI Integration Best Practices
+1.  **Upload a Document**: Use the `/documents/upload` endpoint to upload a PDF or TXT file. You'll get back a `document_id`.
+2.  **Chat with the Document**: Use the `/documents/{document_id}/chat` endpoint, providing the ID from step 1 and a question about the document.
+3.  **Use the AI Agent**: Use the `/agents/analyze` endpoint with a query like "What is the weather in New York?" or "What is 25 * 8?".
+4.  **Have a Conversation**: Use the `/chat` endpoint to have a basic conversation with Jarvis.
 
-### **Performance Optimization**
-- Use streaming for better user experience
-- Implement conversation memory efficiently
-- Cache embeddings and frequent responses
-- Optimize vector search parameters
-
-### **Security & Privacy**
-- Sanitize all user inputs before AI processing
-- Implement rate limiting for AI endpoints
-- Secure API keys with environment variables
-- Add conversation data encryption
-
-### **User Experience**
-- Provide typing indicators during processing
-- Show conversation context and sources
-- Enable conversation history and export
-- Add fallback responses for AI failures
-
-## 🚀 Next Steps
-
-Congratulations! You've completed the entire FastAPI tutorial series. You now have the skills to build:
-
-- **Scalable APIs** with proper architecture
-- **Real-time features** with WebSockets and streaming
-- **Secure systems** with enterprise-grade authentication
-- **AI-powered applications** with modern language models
-
-**Key Takeaway**: AI integration opens up unlimited possibilities - from simple chatbots to complex reasoning systems. The future is AI-powered, and you're ready to build it! 🤖✨
-
-## 🎉 Tutorial Complete!
-
-You've mastered all 10 sections of FastAPI development:
-1. ☕ **Introduction** - Coffee Shop API
-2. 🎮 **Type Hints** - Game Character Builder  
-3. 👨‍🍳 **Pydantic** - Recipe Validation
-4. 📚 **Routing** - Digital Library
-5. 📱 **Request/Response** - Social Media Platform
-6. 📚 **Documentation** - AI Assistant Marketplace
-7. 🎮 **Async** - Real-time Gaming Platform
-8. 🎬 **Streaming** - Live Content Platform
-9. 🏦 **Security** - Digital Banking System
-10. 🤖 **AI Integration** - Personal Assistant Platform
-
-**You're now ready to build world-class APIs with FastAPI!** 🚀 
+---
+**Key Takeaway**: FastAPI provides the perfect framework for building robust, production-ready APIs on top of powerful AI libraries like LangChain and Google Gemini. 🤖✨ 

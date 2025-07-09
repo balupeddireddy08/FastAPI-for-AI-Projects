@@ -85,7 +85,7 @@ Get the server running to see the results of the code.
 
 ```bash
 # Navigate to the project directory
-cd 06-swagger-openapi
+cd 06-documentation
 
 # Run the FastAPI application
 uvicorn main:app --reload

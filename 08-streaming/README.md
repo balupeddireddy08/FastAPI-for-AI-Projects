@@ -189,7 +189,7 @@ graph TD
     ```
 2.  Navigate into the streaming directory:
     ```bash
-    cd streaming
+    cd 08-streaming
     ```
 3.  From **inside the `streaming` directory**, run the Uvicorn server:
     ```bash
