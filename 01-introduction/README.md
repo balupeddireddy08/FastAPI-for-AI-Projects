@@ -56,7 +56,7 @@ graph TD
         C --> F["General Welcome<br/>(Simple Route)"]
     end
 
-    subgraph "The Magic Behind the Counter (Automatic Features)"
+    subgraph "Magic Behind Counter (Automatic Features)"
         B --> G["Order Validation<br/>(Is it on the menu?)"]
         B --> H["Understanding the Order<br/>(Type Conversion)"]
         B --> I["The Menu Board<br/>(API Documentation)"]
