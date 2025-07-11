@@ -45,26 +45,26 @@ Our coffee shop API demonstrates core FastAPI concepts through familiar business
 ```mermaid
 graph TD
     subgraph "Customer Interaction"
-        A["<b>Customer</b><br/>(Client)"] -->|Places an Order<br/>(HTTP Request)| B["<b>Barista at Counter</b><br/>(FastAPI App)"]
-        B -->|Serves Coffee & Receipt<br/>(HTTP Response)| A
+        A["Customer (Client)"] -->|"Places Order (HTTP Request)"| B["Barista at Counter (FastAPI App)"]
+        B -->|"Serves Coffee (HTTP Response)"| A
     end
 
     subgraph "Inside the Coffee Shop (FastAPI Application)"
-        B --> C["<b>Barista's Actions</b><br/>(Route Handlers)"]
-        C --> D["'I'll have coffee #2'<br/>(Path Parameter: /menu/coffee/2)"]
-        C --> E["'How much for this with a 20% tip?'<br/>(Query Parameter: ?tip_percentage=20)"]
-        C --> F["'Hello, what do you offer?'<br/>(Simple Route: /welcome)"]
+        B --> C["Barista's Actions (Route Handlers)"]
+        C --> D["Order by ID: 'Coffee #2'<br/>(Path Parameter)"]
+        C --> E["Ask for Price with Tip<br/>(Query Parameter)"]
+        C --> F["General Welcome<br/>(Simple Route)"]
     end
 
     subgraph "The Magic Behind the Counter (Automatic Features)"
-        B --> G["<b>Order Validation</b><br/>(Is 'coffee #99' on the menu?)"]
-        B --> H["<b>Understanding the Order</b><br/>(Converts text 'two' to number 2)"]
-        B --> I["<b>The Menu Board</b><br/>(API Documentation)"]
+        B --> G["Order Validation<br/>(Is it on the menu?)"]
+        B --> H["Understanding the Order<br/>(Type Conversion)"]
+        B --> I["The Menu Board<br/>(API Documentation)"]
     end
 
     subgraph "Viewing the Menu"
-        I --> J["Interactive Digital Menu<br/>(Swagger UI: /docs)"]
-        I --> K["Simple Menu List<br/>(ReDoc: /redoc)"]
+        I --> J["Interactive Menu (Swagger UI)"]
+        I --> K["Simple Menu List (ReDoc)"]
     end
 ```
 
