@@ -3,20 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Brew Master Coffee Shop</title>
+    <title>☕ Brew Master Coffee Shop - Interactive API</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; text-align: center; }
-        h1 { color: #6F4E37; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        body { font-family: 'Arial', sans-serif; background-color: #f0e6dd; color: #4b3832; margin: 0; padding: 20px; }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #c8a687; }
+        .header h1 { color: #6F4E37; }
+        .header p { color: #8c7b75; }
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; padding: 20px; max-width: 1200px; margin: auto; }
+        .feature-box { background-color: #fff; border: 1px solid #d4c1ab; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        h2 { color: #855b41; border-bottom: 1px solid #dcdcdc; padding-bottom: 10px; margin-top: 0; }
+        pre { background-color: #fcf8f2; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; max-height: 250px; overflow-y: auto; border: 1px solid #e0d6c9; color: #5a4b44; font-family: 'Courier New', Courier, monospace; text-align: left; }
+        button { background-color: #8d6e63; color: white; border: none; padding: 12px 18px; border-radius: 5px; cursor: pointer; font-size: 1em; transition: background-color 0.2s; }
+        button:hover { background-color: #795548; }
+        input[type="number"], input[type="text"] { width: calc(100% - 24px); padding: 10px; border-radius: 5px; border: 1px solid #d4c1ab; background-color: #fdfaf7; color: #4b3832; margin-bottom: 10px; }
         a { color: #6F4E37; text-decoration: none; font-weight: bold; }
         a:hover { text-decoration: underline; }
+        .feature-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>☕ Welcome to Brew Master Coffee Shop!</h1>
-        <p>Your favorite neighborhood coffee shop, now with an API!</p>
-        <p>To see the magic, check out the <a href="/docs">API Documentation</a>.</p>
+    <div class="header">
+        <h1>☕ Welcome to Brew Master's Interactive API!</h1>
+        <p>Use the controls below to interact with our live API endpoints.</p>
+        <p>Or, see the full <a href="/docs">API Documentation</a>.</p>
     </div>
+
+    <div class="container">
+        <!-- Feature 1: Welcome & Full Menu -->
+        <div class="feature-box">
+            <h2>1. Welcome & Full Menu</h2>
+            <div class="feature-icon">☕</div>
+            <p>Get a friendly welcome from the Brew Master, including today's special and the full coffee menu.</p>
+            <button onclick="fetchWelcome()">Get Welcome Message</button>
+            <pre id="welcome-output">API response will appear here...</pre>
+        </div>
+
+        <!-- Feature 2: Get Specific Coffee -->
+        <div class="feature-box">
+            <h2>2. Find a Coffee by ID</h2>
+            <div class="feature-icon">🔍</div>
+            <p>Enter a coffee ID (1-5) to get its details from the menu.</p>
+            <input type="number" id="coffee-id-input" placeholder="Enter Coffee ID (e.g., 2)" min="1">
+            <button onclick="fetchCoffeeById()">Get Coffee Details</button>
+            <pre id="coffee-details-output">API response will appear here...</pre>
+        </div>
+
+        <!-- Feature 3: Calculate Total Cost -->
+        <div class="feature-box">
+            <h2>3. Calculate Your Bill</h2>
+            <div class="feature-icon">💰</div>
+            <p>Enter a price and an optional tip percentage to calculate the total cost.</p>
+            <input type="number" id="coffee-price-input" placeholder="Enter coffee price (e.g., 4.50)" step="0.01">
+            <input type="number" id="tip-percentage-input" placeholder="Enter tip % (default: 15)">
+            <button onclick="calculateTotal()">Calculate Total</button>
+            <pre id="total-cost-output">API response will appear here...</pre>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to pretty-print JSON
+        function displayJson(elementId, data) {
+            document.getElementById(elementId).textContent = JSON.stringify(data, null, 2);
+        }
+
+        // Helper function to show errors
+        function displayError(elementId, error) {
+            document.getElementById(elementId).textContent = `An error occurred: ${error.message}`;
+        }
+
+        // Feature 1: Fetch Welcome Message
+        async function fetchWelcome() {
+            const output = document.getElementById('welcome-output');
+            output.textContent = 'Fetching from /welcome...';
+            try {
+                const response = await fetch('/welcome');
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+                displayJson('welcome-output', data);
+            } catch (error) {
+                displayError('welcome-output', error);
+            }
+        }
+
+        // Feature 2: Fetch Coffee by ID
+        async function fetchCoffeeById() {
+            const output = document.getElementById('coffee-details-output');
+            const coffeeId = document.getElementById('coffee-id-input').value;
+            if (!coffeeId) {
+                output.textContent = 'Please enter a Coffee ID.';
+                return;
+            }
+            output.textContent = `Fetching from /menu/coffee/${coffeeId}...`;
+            try {
+                const response = await fetch(`/menu/coffee/${coffeeId}`);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+                displayJson('coffee-details-output', data);
+            } catch (error) {
+                displayError('coffee-details-output', error);
+            }
+        }
+
+        // Feature 3: Calculate Total
+        async function calculateTotal() {
+            const output = document.getElementById('total-cost-output');
+            const price = document.getElementById('coffee-price-input').value;
+            const tip = document.getElementById('tip-percentage-input').value;
+
+            if (!price) {
+                output.textContent = 'Please enter a coffee price.';
+                return;
+            }
+
+            let url = `/calculate/total/${price}`;
+            if (tip) {
+                url += `?tip_percentage=${tip}`;
+            }
+
+            output.textContent = `Fetching from ${url}...`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                const data = await response.json();
+                displayJson('total-cost-output', data);
+            } catch (error) {
+                displayError('total-cost-output', error);
+            }
+        }
+    </script>
 </body>
 </html> 
