@@ -17,7 +17,7 @@ app = FastAPI(
 # Serve HTML file directly
 @app.get("/", response_class=HTMLResponse)
 async def get_html():
-    with open("index.html", "r") as file:
+    with open("index.html", "r", encoding="utf-8") as file:
         return file.read()
 
 # Character classes enum for better type safety and auto-documentation
