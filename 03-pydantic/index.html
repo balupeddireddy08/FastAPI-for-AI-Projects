@@ -3,20 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👨‍🍳 Recipe Master API</title>
+    <title>👨‍🍳 Recipe Master API - Pydantic Demo</title>
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons for icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f8f8f8; color: #333; margin: 0; padding: 20px; text-align: center; }
-        h1 { color: #ff6347; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        a { color: #ff6347; text-decoration: none; font-weight: bold; }
-        a:hover { text-decoration: underline; }
+        body {
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 900px;
+        }
+        .card-header {
+            background-color: #ff6347;
+            color: white;
+            font-weight: bold;
+        }
+        .btn-custom {
+            background-color: #ff6347;
+            color: white;
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #e5533d;
+            color: white;
+        }
+        #response-container {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #282c34;
+            color: #dcdfe4;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .explanation-box {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>👨‍🍳 Welcome to the Recipe Master API!</h1>
-        <p>This project demonstrates Pydantic validation in FastAPI.</p>
-        <p>Explore the <a href="/docs">API Documentation</a> to test the validation rules.</p>
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <h1 class="display-5">👨‍🍳 Recipe Master API</h1>
+            <p class="lead">An Interactive Demo of Pydantic Data Validation in FastAPI</p>
+        </div>
+
+        <div class="explanation-box">
+            <h4><i class="bi bi-shield-check"></i> What is Pydantic Doing Here?</h4>
+            <p>When you submit a recipe, FastAPI uses <strong>Pydantic models</strong> to automatically validate the data. If the data doesn't match the required format (e.g., a negative cooking time, a missing ingredient), Pydantic stops it and sends back a helpful error message. This ensures your data is always clean and reliable!</p>
+            <p>Try submitting invalid data to see it in action!</p>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <i class="bi bi-journal-plus"></i> Create a New Recipe
+            </div>
+            <div class="card-body">
+                <form id="recipe-form">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Recipe Name</label>
+                            <input type="text" class="form-control" id="name" value="Spaghetti Carbonara">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cuisine_type" class="form-label">Cuisine Type</label>
+                            <select class="form-select" id="cuisine_type">
+                                <option value="italian">Italian</option>
+                                <option value="mexican">Mexican</option>
+                                <option value="asian">Asian</option>
+                                <option value="french">French</option>
+                                <option value="american">American</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="3">A classic Italian pasta dish with eggs, cheese, and pancetta.</textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="difficulty" class="form-label">Difficulty</label>
+                            <select class="form-select" id="difficulty">
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                                <option value="expert">Expert</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="prep_time_minutes" class="form-label">Prep Time (mins)</label>
+                            <input type="number" class="form-control" id="prep_time_minutes" value="15">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="cook_time_minutes" class="form-label">Cook Time (mins)</label>
+                            <input type="number" class="form-control" id="cook_time_minutes" value="20">
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h5><i class="bi bi-cart-plus"></i> Ingredients</h5>
+                    <div id="ingredients-container">
+                        <!-- Ingredients will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addIngredient()"><i class="bi bi-plus-circle"></i> Add Ingredient</button>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <button type="button" class="btn btn-custom" onclick="submitRecipe('/recipes/')">
+                            <i class="bi bi-send"></i> Create Recipe (Basic)
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="submitRecipe('/recipes/validate-advanced/')">
+                            <i class="bi bi-check2-circle"></i> Create Recipe (Advanced Validation)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header">
+                <i class="bi bi-braces"></i> API Response
+            </div>
+            <div class="card-body">
+                <pre id="response-container">Your API response will appear here...</pre>
+            </div>
+        </div>
+        
+        <footer class="text-center mt-4 text-muted">
+            <p>Check out the <a href="/docs">Swagger UI Docs</a> or <a href="/redoc">ReDoc</a> for more technical details.</p>
+        </footer>
     </div>
+
+    <script>
+        let ingredientCount = 0;
+
+        function addIngredient(name = '', quantity = 1, unit = 'piece') {
+            ingredientCount++;
+            const ingredientsContainer = document.getElementById('ingredients-container');
+            const newIngredient = document.createElement('div');
+            newIngredient.classList.add('row', 'mb-2', 'align-items-center');
+            newIngredient.id = `ingredient-${ingredientCount}`;
+            newIngredient.innerHTML = `
+                <div class="col-md-4">
+                    <input type="text" class="form-control" placeholder="Ingredient Name" value="${name}">
+                </div>
+                <div class="col-md-3">
+                    <input type="number" class="form-control" placeholder="Quantity" value="${quantity}">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" placeholder="Unit" value="${unit}">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeIngredient(${ingredientCount})"><i class="bi bi-trash"></i></button>
+                </div>
+            `;
+            ingredientsContainer.appendChild(newIngredient);
+        }
+
+        function removeIngredient(id) {
+            const ingredientToRemove = document.getElementById(`ingredient-${id}`);
+            if (ingredientToRemove) {
+                ingredientToRemove.remove();
+            }
+        }
+
+        async function submitRecipe(endpoint) {
+            const recipe = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value,
+                difficulty: document.getElementById('difficulty').value,
+                cuisine_type: document.getElementById('cuisine_type').value,
+                prep_time_minutes: parseInt(document.getElementById('prep_time_minutes').value, 10),
+                cook_time_minutes: parseInt(document.getElementById('cook_time_minutes').value, 10),
+                ingredients: []
+            };
+
+            const ingredientsContainer = document.getElementById('ingredients-container');
+            const ingredientRows = ingredientsContainer.children;
+            for (let i = 0; i < ingredientRows.length; i++) {
+                const row = ingredientRows[i];
+                const inputs = row.getElementsByTagName('input');
+                recipe.ingredients.push({
+                    name: inputs[0].value,
+                    quantity: parseFloat(inputs[1].value),
+                    unit: inputs[2].value
+                });
+            }
+
+            const responseContainer = document.getElementById('response-container');
+            responseContainer.textContent = 'Sending request...';
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(recipe),
+                });
+                const responseData = await response.json();
+                responseContainer.textContent = JSON.stringify(responseData, null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+                responseContainer.textContent = 'An error occurred. Check the console for details.';
+            }
+        }
+
+        // Add some default ingredients for demonstration
+        document.addEventListener('DOMContentLoaded', () => {
+            addIngredient('Spaghetti', 400, 'grams');
+            addIngredient('Pancetta', 150, 'grams');
+            addIngredient('Large Egg Yolks', 4, 'count');
+            addIngredient('Pecorino Romano Cheese', 50, 'grams');
+        });
+    </script>
 </body>
 </html> 

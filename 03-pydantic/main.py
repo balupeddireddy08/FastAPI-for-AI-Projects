@@ -18,7 +18,7 @@ app = FastAPI(
 # Serve the HTML file for the root path
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    with open("index.html", "r") as f:
+    with open("index.html", "r", encoding="utf-8") as f:
         return f.read()
 
 # --- Enum Definitions ---

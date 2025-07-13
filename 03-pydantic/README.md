@@ -55,33 +55,72 @@ Pydantic works by letting you define data "schemas" using Python classes that in
 
 ### **1. Basic Data Models & Field Validation**
 
-You define a class, and each attribute becomes a data field. You can use `Field()` to add specific validation rules, like minimum/maximum lengths for text, or value ranges for numbers. If data doesn't meet these rules, Pydantic automatically flags it.
+You define a class where each attribute is a data field. Using `Field()`, you can add validation rules like minimum/maximum lengths for text or value ranges for numbers. If data doesn't meet these rules, Pydantic automatically flags it.
+
+*Purpose*: Ensures that basic data types are correct and values meet predefined criteria.
 
 ```python
-# Example: See 'SmartIngredient' and 'SmartRecipe' models in main.py
+from pydantic import BaseModel, Field
+
+class SmartIngredient(BaseModel):
+    # Field validation:
+    # - name: Must be between 1 and 50 characters.
+    # - quantity: Must be a number greater than 0.
+    name: str = Field(..., min_length=1, max_length=50)
+    quantity: float = Field(..., gt=0)
+    unit: str = Field(..., min_length=1, max_length=20)
 ```
-*Purpose*: Ensures basic data types are correct and values meet predefined criteria (e.g., a recipe name has a minimum length, a quantity is a positive number).
 
 ### **2. Custom Validation Logic (`@field_validator` & `@model_validator`)**
 
-For more complex rules that depend on specific business logic or relationships between different data fields, Pydantic allows you to write your own Python validation functions:
+For more complex business rules, Pydantic allows you to write your own validation functions.
 
--   `@field_validator`: Checks a single field. (e.g., in `SmartIngredient`, checking if a `quantity` is unusually high).
--   `@model_validator`: Checks the entire model after all individual fields are validated. (e.g., in `SmartRecipe`, ensuring the `total_time` of prep and cooking isn't excessive).
+-   **`@field_validator`**: Checks a single field. For example, checking if an ingredient quantity is unusually high.
+-   **`@model_validator`**: Checks the entire model after individual fields are validated. This is useful for rules that depend on multiple fields, like ensuring the total recipe time is reasonable.
+
+*Purpose*: Lets you implement any custom logic needed to validate your data beyond simple checks.
 
 ```python
-# Example: See the custom validators in 'SmartIngredient' and 'SmartRecipe' in main.py
+from pydantic import BaseModel, field_validator, model_validator
+
+class SmartIngredient(BaseModel):
+    name: str
+    quantity: float
+    unit: str
+    
+    @field_validator('quantity')
+    def quantity_reasonable(cls, v):
+        if v > 100:
+            raise ValueError('Quantity seems very high! Double-check measurements.')
+        return v
+
+class SmartRecipe(BaseModel):
+    prep_time_minutes: int
+    cook_time_minutes: int
+    
+    @model_validator(mode='after')
+    def total_time_check(self):
+        total_time = self.prep_time_minutes + self.cook_time_minutes
+        if total_time > 720: # Max 12 hours
+            raise ValueError('Total time exceeds 12 hours.')
+        return self
 ```
-*Purpose*: Allows you to implement any custom logic needed to validate your data, ensuring data integrity beyond simple type checks.
 
 ### **3. Enums for Fixed Choices**
 
-Enums (enumerations) allow you to define a fixed set of allowed values for a field. This prevents typos and ensures consistency by limiting choices to a predefined list.
+Enums (enumerations) let you define a fixed set of allowed values for a field. This prevents typos and ensures data consistency by limiting choices to a predefined list.
+
+*Purpose*: Guarantees that certain fields only accept valid options, improving data quality.
 
 ```python
-# Example: See 'DifficultyLevel' and 'CuisineType' enums in main.py
+from enum import Enum
+
+class DifficultyLevel(str, Enum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"  
+    ADVANCED = "advanced"
+    EXPERT = "expert"
 ```
-*Purpose*: Guarantees that certain fields (like `difficulty` or `cuisine_type`) only accept predefined, valid options, improving data quality.
 
 ## 🚀 Pydantic + FastAPI: A Perfect Pair
 
