@@ -7,7 +7,7 @@ Transform from beginner to API expert by building **9 exciting projects** - from
 | Section | Project | Core Concept | 
 |---------|---------|--------------|
 | 1 | ☕ Brew Master Coffee Shop | FastAPI Basics |
-| 2 | 🎮 Game Character Builder | Type Hints |
+| 2 | 📚 Bookstore API | Type Hints |
 | 3 | 👨‍🍳 Recipe Master API | Pydantic Validation |
 | 4 | 📚 Magical Digital Library | Routing & Organization |
 | 5 | 🎟️ Secure Concert API | Security & Authentication |
@@ -72,7 +72,7 @@ Create production-ready systems with streaming, security, and AI.
 
 Choose your path:
 - 🆕 **Complete Beginner?** → [Coffee Shop Magic](01-introduction/)
-- 🔄 **Some Experience?** → [Game Character Builder](02-type-hints/)  
+- 🔄 **Some Experience?** → [Bookstore API](02-type-hints/)  
 - ⚡ **Ready for Advanced?** → [Food Delivery App](07-async/)
 
 Every expert was once a beginner. Start building today! 🎯 
