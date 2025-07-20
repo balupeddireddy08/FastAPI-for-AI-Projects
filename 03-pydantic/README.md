@@ -146,78 +146,100 @@ uvicorn main:app --reload
 
 # --- Example POST Requests ---
 # Make sure the FastAPI application is running (uvicorn main:app --reload) before trying these.
+# We'll use "Chicken Tikka Masala" to test our validation rules.
 
-# 1. Basic Recipe Creation (POST /recipes/)
-#    This endpoint uses the SmartRecipe model for validation.
-
-#    Example 1.1: Valid Request
-#    Expected: 200 OK, with a success message and recipe details.
+# 1. Successful Recipe Creation (POST /recipes/)
+#    This request should pass all validation rules.
+#    Expected: 200 OK, with a success message.
 curl -X POST "http://127.0.0.1:8000/recipes/" \
      -H "Content-Type: application/json" \
      -d '{
-  "name": "Delicious Vegan Pasta",
-  "description": "A quick and easy pasta dish with fresh vegetables and a creamy sauce.",
-  "difficulty": "beginner",
-  "prep_time_minutes": 15,
-  "cook_time_minutes": 20,
+  "name": "Classic Chicken Tikka Masala",
+  "description": "A delicious and creamy chicken tikka masala, marinated in yogurt and spices, then simmered in a rich tomato-based sauce. A restaurant-quality dish you can make at home.",
+  "difficulty": "intermediate",
+  "prep_time_minutes": 45,
+  "cook_time_minutes": 30,
   "ingredients": [
-    {"name": "Spaghetti", "quantity": 250, "unit": "g"},
-    {"name": "Tomatoes", "quantity": 300, "unit": "g"}
+    {"name": "Chicken Breast", "quantity": 50, "unit": "g"},
+    {"name": "Yogurt", "quantity": 1, "unit": "cup"},
+    {"name": "Tomatoes", "quantity": 40, "unit": "g"},
+    {"name": "Garam Masala", "quantity": 2, "unit": "tbsp"}
   ],
-  "cuisine_type": "italian"
+  "cuisine_type": "asian"
 }'
 
-#    Example 1.2: Invalid Request (Missing 'name', 'description' too short)
-#    Expected: 422 Unprocessable Entity, with detailed validation errors.
+# 2. Invalid Request: Basic Field Errors
+#    - 'name' is too short (min 3 chars).
+#    - 'description' is too short (min 20 chars).
+#    - 'prep_time_minutes' is not > 0.
+#    Expected: 422 Unprocessable Entity, with detailed validation errors for each field.
 curl -X POST "http://127.0.0.1:8000/recipes/" \
      -H "Content-Type: application/json" \
      -d '{
-  "description": "Too short",
-  "difficulty": "intermediate",
-  "prep_time_minutes": 5,
-  "cook_time_minutes": 10,
+  "name": "CK",
+  "description": "Tasty curry.",
+  "difficulty": "beginner",
+  "prep_time_minutes": 0,
+  "cook_time_minutes": 25,
   "ingredients": [
-    {"name": "Water", "quantity": 1, "unit": "cup"}
+    {"name": "Chicken", "quantity": 50, "unit": "g"}
   ],
   "cuisine_type": "american"
 }'
 
-# 2. Advanced Validation Example (POST /recipes/validate-advanced/)
-#    This endpoint also uses the SmartRecipe model, demonstrating custom model-level validation.
-
-#    Example 2.1: Valid Request
-#    Expected: 200 OK, with a success message and calculated total time.
-curl -X POST "http://127.0.0.1:8000/recipes/validate-advanced/" \
+# 3. Invalid Request: Enum & Custom Field Validator Errors
+#    - 'difficulty' is not a valid choice (not in the Enum).
+#    - 'cuisine_type' is not a valid choice ('indian' is not in our list).
+#    - ingredient 'quantity' is too high (> 100), triggering the @field_validator.
+#    Expected: 422 Unprocessable Entity, with multiple validation errors.
+curl -X POST "http://127.0.0.1:8000/recipes/" \
      -H "Content-Type: application/json" \
      -d '{
-  "name": "Complex Beef Wellington",
-  "description": "An elaborate and time-consuming dish for experienced chefs, perfect for special occasions.",
-  "difficulty": "expert",
-  "prep_time_minutes": 120,
-  "cook_time_minutes": 240,
+  "name": "Spicy Chicken Tikka",
+  "description": "A very spicy version of the classic dish, be careful with the heat level as it is quite intense.",
+  "difficulty": "masterchef",
+  "prep_time_minutes": 30,
+  "cook_time_minutes": 40,
   "ingredients": [
-    {"name": "Beef Tenderloin", "quantity": 1, "unit": "kg"},
-    {"name": "Puff Pastry", "quantity": 500, "unit": "g"},
-    {"name": "Mushrooms", "quantity": 200, "unit": "g"}
+    {"name": "Chicken", "quantity": 50, "unit": "g"},
+    {"name": "Chili Powder", "quantity": 101, "unit": "g"}
   ],
-  "cuisine_type": "french"
+  "cuisine_type": "indian"
 }'
 
-#    Example 2.2: Invalid Request (Total time exceeds 12 hours - custom model validator will fail)
+# 4. Invalid Request: List Validation Error
+#    - The 'ingredients' list is empty, which violates `min_items=1`.
+#    Expected: 422 Unprocessable Entity, with an error about the ingredients list.
+curl -X POST "http://127.0.0.1:8000/recipes/" \
+     -H "Content-Type: application/json" \
+     -d '{
+  "name": "Invisible Chicken Tikka",
+  "description": "This is a magical dish that requires absolutely no ingredients to make, defying all laws of physics.",
+  "difficulty": "expert",
+  "prep_time_minutes": 10,
+  "cook_time_minutes": 15,
+  "ingredients": [],
+  "cuisine_type": "asian"
+}'
+
+
+# 5. Invalid Request (Advanced Validation): Custom Model Validator
+#    - This endpoint uses the @model_validator to check cross-field logic.
+#    - The total time (prep + cook) exceeds 720 minutes (12 hours).
 #    Expected: 422 Unprocessable Entity, due to the 'total_time_check' validator.
 curl -X POST "http://127.0.0.1:8000/recipes/validate-advanced/" \
      -H "Content-Type: application/json" \
      -d '{
-  "name": "Marathon Stew",
-  "description": "A stew that requires an absurdly long cooking time for maximum flavor extraction.",
-  "difficulty": "advanced",
-  "prep_time_minutes": 60,
-  "cook_time_minutes": 700, 
+  "name": "Marathon Chicken Tikka",
+  "description": "A chicken tikka so complex it takes more than half a day to prepare and cook, testing the limits of your patience.",
+  "difficulty": "expert",
+  "prep_time_minutes": 300,
+  "cook_time_minutes": 500,
   "ingredients": [
-    {"name": "Beef", "quantity": 500, "unit": "g"},
-    {"name": "Potatoes", "quantity": 2, "unit": "large"}
+    {"name": "Chicken", "quantity": 1, "unit": "kg"},
+    {"name": "Spice Mix", "quantity": 50, "unit": "g"}
   ],
-  "cuisine_type": "american"
+  "cuisine_type": "french"
 }'
 ```
 
