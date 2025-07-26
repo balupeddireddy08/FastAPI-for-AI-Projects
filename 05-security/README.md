@@ -1,4 +1,4 @@
-# 🎟️ Section 9: Security - A Simplified Introduction
+# 🎟️ Section 5: Security - A Simplified Introduction
 
 Welcome to a beginner-friendly guide to **enterprise-grade security** in FastAPI! We'll explore the most important security concepts by building a simplified **Secure Concert API**. This guide focuses on clarity and understanding, using a "concert ticket" analogy to highlight the core security features.
 

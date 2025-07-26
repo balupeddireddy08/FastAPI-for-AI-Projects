@@ -1,6 +1,6 @@
 # 🚀 FastAPI for AI Projects - Learn by Building Real Apps!
 
-Transform from beginner to API expert by building **9 exciting projects** - from a coffee shop management system to an AI-powered assistant! Each project teaches core FastAPI concepts through hands-on development.
+Transform from beginner to API expert by building **Exciting projects** - from a coffee shop management system to an AI-powered assistant! Each project teaches core FastAPI concepts through hands-on development.
 
 ## 🎯 What You'll Build
 
@@ -11,10 +11,9 @@ Transform from beginner to API expert by building **9 exciting projects** - from
 | 3 | 👨‍🍳 Recipe Master API | Pydantic Validation |
 | 4 | 📚 Magical Digital Library | Routing & Organization |
 | 5 | 🎟️ Secure Concert API | Security & Authentication |
-| 6 | 🚀 FastAPI Documentation Demo | Documentation |
-| 7 | 🚚 Food Delivery App | Async Programming |
-| 8 | 🛰️ Cosmic Rover Control | Streaming & WebSockets |
-| 9 | 🤖 Jarvis AI Assistant | AI Integration |
+| 6 | 🚚 Food Delivery App | Async Programming |
+| 7 | 🛰️ Cosmic Rover Control | Streaming & WebSockets |
+| 8 | 🤖 Jarvis AI Assistant | AI Integration |
 
 ## 📊 Visual Learning with Diagrams
 
@@ -42,22 +41,10 @@ uvicorn main:app --reload
 # Visit http://localhost:8000/docs - You just built an API! 🎉
 ```
 
-## 📖 Learning Path
-
-### 🌱 **Beginner Track** (Sections 1-4)
-Master the fundamentals with fun, practical projects.
-
-### 🔥 **Intermediate Track** (Sections 5-7) 
-Build complex applications with real-world features.
-
-### ⚡ **Advanced Track** (Sections 8-10)
-Create production-ready systems with streaming, security, and AI.
-
 ## 🛠️ Prerequisites
 
 - Basic Python knowledge (`print("Hello World")` level is enough!)
 - Python 3.7+ installed
-- Code editor (VS Code recommended)
 - Enthusiasm to build cool stuff! ✨
 
 ## 🎓 Why This Tutorial?
@@ -69,10 +56,5 @@ Create production-ready systems with streaming, security, and AI.
 - **Visual Learning**: Diagrams make complex concepts clear
 
 ## 🚀 Start Your Journey
-
-Choose your path:
-- 🆕 **Complete Beginner?** → [Coffee Shop Magic](01-introduction/)
-- 🔄 **Some Experience?** → [Bookstore API](02-type-hints/)  
-- ⚡ **Ready for Advanced?** → [Food Delivery App](07-async/)
 
 Every expert was once a beginner. Start building today! 🎯 

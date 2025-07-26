@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Annotated
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, Field
@@ -51,12 +51,21 @@ SECRET_KEY = "a-very-secret-key-that-should-be-in-a-env-file"
 ALGORITHM = "HS256"  # The specific cryptographic algorithm to sign the JWT.
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # How long a token is valid after being issued.
 
-# This object tells FastAPI two things about our login system:
-# 1. It expects the client to send a token in the "Authorization" header
-#    in the format "Bearer <token>".
-# 2. It specifies the URL where the client can go to get a token (`/auth/login`).
-#    This is used by the interactive API docs (Swagger UI).
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+# --- CHANGE STARTS HERE ---
+# We'll use HTTPBearer for a direct 'Access Token' input in Swagger UI.
+# OAuth2PasswordBearer will still be used for the /auth/login path's documentation
+# and for the actual token parsing logic.
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="auth/login",
+    scopes={
+        "me": "Read information about the current user.",
+        "guest_list": "View the concert guest list (organizer only)."
+    }
+)
+
+# Define an HTTPBearer instance for direct token input in Swagger UI
+bearer_scheme = HTTPBearer()  # This automatically looks for "Bearer <token>" in Authorization header
+# --- CHANGE ENDS HERE ---
 
 # We use 'slowapi' to implement rate limiting. This is a crucial defense
 # against brute-force attacks, where an attacker tries to guess passwords
@@ -66,6 +75,8 @@ limiter = Limiter(key_func=get_remote_address)
 
 # --- 2. FASTAPI APP INITIALIZATION ---
 
+# --- CHANGE STARTS HERE ---
+# Simplified FastAPI initialization without openapi_extra
 app = FastAPI(
     title="🎟️ Secure Concert API - Simplified Security Demo",
     description="""
@@ -80,6 +91,7 @@ app = FastAPI(
     """,
     version="1.0.0"
 )
+# --- CHANGE ENDS HERE ---
 
 # Apply the rate limiter to our entire application.
 app.state.limiter = limiter
@@ -98,11 +110,13 @@ class UserRole(str, Enum):
     GUEST = "guest"
     ORGANIZER = "organizer"
 
+
 class User(BaseModel):
     """This is the basic, public-facing model for a user (an attendee)."""
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
     role: UserRole
+
 
 class UserInDB(User):
     """
@@ -111,6 +125,7 @@ class UserInDB(User):
     the hashed password in API responses, so we keep it in a separate model.
     """
     hashed_password: str
+
 
 class UserCreate(BaseModel):
     """
@@ -121,6 +136,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8)
 
+
 class Token(BaseModel):
     """
     This model defines the structure of the response when a user logs in successfully.
@@ -128,6 +144,7 @@ class Token(BaseModel):
     """
     access_token: str
     token_type: str
+
 
 class TokenData(BaseModel):
     """
@@ -152,9 +169,11 @@ def get_password_hash(password: str) -> str:
     """Hashes a plain-text password."""
     return pwd_context.hash(password)
 
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifies a plain-text password against a hashed one. Used during login."""
     return pwd_context.verify(plain_password, hashed_password)
+
 
 def create_access_token(data: dict) -> str:
     """
@@ -169,10 +188,16 @@ def create_access_token(data: dict) -> str:
 
 
 # --- 6. DEPENDENCIES FOR AUTHENTICATION & AUTHORIZATION ---
-# Dependencies run *before* your endpoint logic. We use them to check for
-# a valid token or ensure a user has the correct permissions.
+# These dependencies handle decoding the token and fetching the user.
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> UserInDB:
+# --- CHANGE STARTS HERE ---
+# We will use the 'bearer_scheme' for the dependency now, which is HTTPBearer
+# This allows the direct token input in Swagger UI.
+# The `oauth2_scheme` is primarily for the /auth/login documentation.
+async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)]) -> UserInDB:
+    # `security_token.credentials` contains the token string from the "Bearer <token>" header
+    token = security_token.credentials
+    # --- CHANGE ENDS HERE ---
     """
     This is our main authentication dependency. It's the security guard at the concert entrance.
     1. It extracts the token (the ticket) from the request header.
@@ -192,9 +217,17 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         role: str = payload.get("role")
+        # --- (Optional) If you wanted to check scopes in your token itself ---
+        # scopes = payload.get("scopes", [])
+        # if "me" not in scopes:
+        #     raise HTTPException(
+        #         status_code=status.HTTP_403_FORBIDDEN,
+        #         detail="Not enough permissions (missing 'me' scope)",
+        #     )
+        # ---
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username, role=role)
+        token_data = TokenData(username=username, role=role)  # Removed scopes for simplicity as they aren't used for auth here
     except JWTError:
         raise credentials_exception
 
@@ -203,10 +236,12 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> Use
         raise credentials_exception
     return user
 
+
 # This dependency is a simple way to require a specific role.
 # It uses `get_current_user` to get the authenticated user first,
 # and then checks if their role is in the list of allowed roles.
 def require_roles(required_roles: List[UserRole]):
+    # Note: require_roles will now implicitly use the 'BearerAuth' from get_current_user
     def role_checker(current_user: Annotated[UserInDB, Depends(get_current_user)]):
         if current_user.role not in required_roles:
             raise HTTPException(
@@ -270,19 +305,26 @@ async def login_for_access_token(
             detail="Incorrect username or password",
         )
 
+    token_scopes = ["me"]
+    if user.role == UserRole.ORGANIZER:
+        token_scopes.append("guest_list")
+
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role.value}
+        data={"sub": user.username, "role": user.role.value, "scopes": token_scopes}
     )
+
     return {"access_token": access_token, "token_type": "bearer"}
 
 
+# --- CHANGE STARTS HERE ---
+# Remove the security parameter from route decorators
 @app.get("/attendees/me", response_model=User)
-async def read_users_me(current_user: Annotated[UserInDB, Depends(get_current_user)]):
+async def read_users_me(
+    current_user: Annotated[UserInDB, Depends(get_current_user)]
+):
     """
     👤 **Concept: Requiring Authentication**
-    This is a protected endpoint. Including `Depends(get_current_user)`
-    ensures that only authenticated users with a valid ticket (JWT) can see
-    their own details.
+    This is a protected endpoint. It requires a valid Bearer token.
     """
     return current_user
 
@@ -293,11 +335,10 @@ async def get_guest_list(
 ):
     """
     📋 **Concept: Role-Based Access Control (RBAC)**
-    This endpoint is restricted. The `Depends(require_roles([UserRole.ORGANIZER]))`
-    part ensures that only users with the `ORGANIZER` role can access it.
-    A regular `GUEST` will get a 403 Forbidden error.
+    This endpoint is restricted to users with the `ORGANIZER` role.
     """
     return {"guest_list": [user.username for user in db_users.values()]}
+# --- CHANGE ENDS HERE ---
 
 
 # --- 8. RUN THE APPLICATION ---
@@ -317,4 +358,4 @@ if __name__ == "__main__":
         print("Created demo organizer user: username='organizer', password='OrganizerPass123!'")
 
     print("🎟️ Starting Secure Concert API...")
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
