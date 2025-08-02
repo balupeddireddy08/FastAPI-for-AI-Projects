@@ -7,24 +7,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HT
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, Field
-# Removed Enum import as it's no longer needed
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from fastapi.responses import HTMLResponse
 
-# =======================================================================
-#
-#  🎟️ Welcome to the Secure Concert API - A Simplified Security Demo 🎟️
-#
-#  This FastAPI application demonstrates core security principles in a
-#  clear and concise way, using a "concert ticket" analogy. We've
-#  stripped away complex logic to focus purely on HOW to implement security.
-#
-#  Each section is numbered and explained to guide you through the concepts.
-#
-# =======================================================================
 
 # --- 1. CORE SECURITY CONFIGURATION ---
 # This is where we set up the fundamental tools for our security system.
@@ -51,7 +39,6 @@ SECRET_KEY = "a-very-secret-key-that-should-be-in-a-env-file"
 ALGORITHM = "HS256"  # The specific cryptographic algorithm to sign the JWT.
 ACCESS_TOKEN_EXPIRE_MINUTES = 30  # How long a token is valid after being issued.
 
-# --- CHANGE STARTS HERE ---
 # We'll use HTTPBearer for a direct 'Access Token' input in Swagger UI.
 # OAuth2PasswordBearer will still be used for the /auth/login path's documentation
 # and for the actual token parsing logic.
@@ -180,14 +167,12 @@ def create_access_token(data: dict) -> str:
 # --- 6. DEPENDENCIES FOR AUTHENTICATION & AUTHORIZATION ---
 # These dependencies handle decoding the token and fetching the user.
 
-# --- CHANGE STARTS HERE ---
 # We will use the 'bearer_scheme' for the dependency now, which is HTTPBearer
 # This allows the direct token input in Swagger UI.
 # The `oauth2_scheme` is primarily for the /auth/login documentation.
 async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)]) -> UserInDB:
     # `security_token.credentials` contains the token string from the "Bearer <token>" header
     token = security_token.credentials
-    # --- CHANGE ENDS HERE ---
     """
     This is our main authentication dependency. It's the security guard at the concert entrance.
     1. It extracts the token (the ticket) from the request header.
