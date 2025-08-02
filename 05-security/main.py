@@ -7,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, HT
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr, Field
-from enum import Enum
+# Removed Enum import as it's no longer needed
 
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -57,10 +57,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30  # How long a token is valid after being issued
 # and for the actual token parsing logic.
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="auth/login",
-    scopes={
-        "me": "Read information about the current user.",
-        "guest_list": "View the concert guest list (organizer only)."
-    }
+            scopes={
+            "me": "Read information about the current user."
+        }
 )
 
 # Define an HTTPBearer instance for direct token input in Swagger UI
@@ -85,7 +84,7 @@ app = FastAPI(
     This application demonstrates the following core security concepts:
 
     * 🔐 **Authentication**: Using JWTs as "digital tickets" for secure login. A user proves who they are.
-    * 🛡️ **Authorization**: Using Role-Based Access Control (RBAC). Once authenticated, we check what the user is *allowed* to do (e.g., access the guest list).
+    * 🔒 **Simple Security**: Focus on basic authentication without complex authorization rules.
     * 🔑 **Password Security**: Never storing plain text passwords by using strong hashing.
     * ⚡ **Rate Limiting**: Protecting login endpoints from automated brute-force attacks.
     """,
@@ -102,20 +101,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Pydantic models define the structure and data types for our API.
 # This provides automatic input validation, preventing many common vulnerabilities.
 
-class UserRole(str, Enum):
-    """
-    Defines the roles a user can have. An 'ORGANIZER' can do more than a 'GUEST'.
-    Using an Enum makes the roles explicit and less prone to typos.
-    """
-    GUEST = "guest"
-    ORGANIZER = "organizer"
+# Removed UserRole enum for simplicity
 
 
 class User(BaseModel):
     """This is the basic, public-facing model for a user (an attendee)."""
     username: str = Field(..., min_length=3, max_length=50)
     email: EmailStr
-    role: UserRole
 
 
 class UserInDB(User):
@@ -152,7 +144,6 @@ class TokenData(BaseModel):
     It's what we get back after we decode a valid token.
     """
     username: Optional[str] = None
-    role: Optional[UserRole] = None
 
 
 # --- 4. IN-MEMORY "DATABASE" ---
@@ -216,7 +207,7 @@ async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        role: str = payload.get("role")
+        # Removed role retrieval from payload
         # --- (Optional) If you wanted to check scopes in your token itself ---
         # scopes = payload.get("scopes", [])
         # if "me" not in scopes:
@@ -227,7 +218,7 @@ async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)
         # ---
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username, role=role)  # Removed scopes for simplicity as they aren't used for auth here
+        token_data = TokenData(username=username)  # Removed role for simplicity
     except JWTError:
         raise credentials_exception
 
@@ -237,19 +228,7 @@ async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)
     return user
 
 
-# This dependency is a simple way to require a specific role.
-# It uses `get_current_user` to get the authenticated user first,
-# and then checks if their role is in the list of allowed roles.
-def require_roles(required_roles: List[UserRole]):
-    # Note: require_roles will now implicitly use the 'BearerAuth' from get_current_user
-    def role_checker(current_user: Annotated[UserInDB, Depends(get_current_user)]):
-        if current_user.role not in required_roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Access denied. User does not have one of the required roles: {', '.join(r.value for r in required_roles)}",
-            )
-        return current_user
-    return role_checker
+# Removed role-based access control dependency for simplicity
 
 
 # --- 7. API ENDPOINTS ---
@@ -278,7 +257,7 @@ async def register_user(user_data: UserCreate, request: Request):
     user_in_db = UserInDB(
         username=user_data.username,
         email=user_data.email,
-        role=UserRole.GUEST,  # New users are guests by default.
+        # Removed role field
         hashed_password=hashed_password
     )
     db_users[user_data.username] = user_in_db
@@ -306,11 +285,9 @@ async def login_for_access_token(
         )
 
     token_scopes = ["me"]
-    if user.role == UserRole.ORGANIZER:
-        token_scopes.append("guest_list")
 
     access_token = create_access_token(
-        data={"sub": user.username, "role": user.role.value, "scopes": token_scopes}
+        data={"sub": user.username, "scopes": token_scopes}
     )
 
     return {"access_token": access_token, "token_type": "bearer"}
@@ -329,15 +306,7 @@ async def read_users_me(
     return current_user
 
 
-@app.get("/organizer/guest-list")
-async def get_guest_list(
-    current_user: Annotated[UserInDB, Depends(require_roles([UserRole.ORGANIZER]))]
-):
-    """
-    📋 **Concept: Role-Based Access Control (RBAC)**
-    This endpoint is restricted to users with the `ORGANIZER` role.
-    """
-    return {"guest_list": [user.username for user in db_users.values()]}
+# Removed role-protected endpoint for simplicity
 # --- CHANGE ENDS HERE ---
 
 
@@ -345,17 +314,16 @@ async def get_guest_list(
 
 if __name__ == "__main__":
     import uvicorn
-    # Pre-populate our "database" with a demo organizer user
-    # so we can immediately test the organizer-only endpoints.
-    if "organizer" not in db_users:
-        organizer_user = UserInDB(
-            username="organizer",
-            email="organizer@concert.com",
-            role=UserRole.ORGANIZER,
-            hashed_password=get_password_hash("OrganizerPass123!")
+    # Pre-populate our "database" with a demo user
+    if "demo" not in db_users:
+        demo_user = UserInDB(
+            username="demo",
+            email="demo@concert.com",
+            # Removed role field
+            hashed_password=get_password_hash("DemoPass123!")
         )
-        db_users["organizer"] = organizer_user
-        print("Created demo organizer user: username='organizer', password='OrganizerPass123!'")
+        db_users["demo"] = demo_user
+        print("Created demo user: username='demo', password='DemoPass123!'")
 
     print("🎟️ Starting Secure Concert API...")
     uvicorn.run(app, host="0.0.0.0", port=8000)

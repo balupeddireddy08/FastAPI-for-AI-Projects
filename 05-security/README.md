@@ -5,7 +5,7 @@ Welcome to a beginner-friendly guide to **enterprise-grade security** in FastAPI
 ## 🎯 What You'll Learn
 
 -   **JWT Authentication**: How to issue and validate "digital tickets" (JWTs) for secure logins.
--   **Role-Based Access Control (RBAC)**: How to restrict access to certain endpoints based on user roles (e.g., "organizer" vs. "guest").
+-   **Simple Authentication Flow**: How to implement a basic secure authentication system without complex authorization rules.
 -   **Password Hashing**: Why we never store plain-text passwords and how to hash them securely.
 -   **Rate Limiting**: How to protect your API from simple brute-force attacks.
 
@@ -16,7 +16,6 @@ Our simplified concert platform demonstrates these core security concepts:
 -   🔐 **User Registration**: Securely registering a user for the event with a hashed password.
 -   🔑 **User Login**: Authenticating a user and issuing a JWT access token (their digital ticket).
 -   🛡️ **Protected Endpoints**: Endpoints that require a valid ticket to access.
--   👑 **Organizer-Only Access**: An endpoint that can only be accessed by a user with the "organizer" role.
 
 ## 📊 Security Flow Diagram
 
@@ -46,12 +45,7 @@ sequenceDiagram
     Auth-->>API: Valid Token + User Data
     API-->>User: User Profile
     
-    User->>API: GET /organizer/guest-list (with JWT)
-    API->>Auth: Validate JWT
-    Auth-->>API: Valid Token + User Data
-    API->>Auth: Check Role (RBAC)
-    Auth-->>API: Role Authorized
-    API-->>User: Guest List Data
+    # Removed role-based access control flow
     
     Note over User,API: Rate Limiting Protection
     User->>API: Multiple rapid login attempts
@@ -132,35 +126,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 ```
 
-### **4. Role-Based Access Control (Authorization)**
-
-Authorization checks what a user is *allowed* to do. This is like the guard who checks for a special wristband to grant backstage access. This dependency factory allows us to protect endpoints so they can only be accessed by users with specific roles.
-
-```python
-from enum import Enum
-
-class UserRole(str, Enum):
-    GUEST = "guest"
-    ORGANIZER = "organizer"
-
-def require_roles(required_roles: List[UserRole]):
-    """A dependency to ensure a user has one of the required roles."""
-    def role_checker(current_user: User = Depends(get_current_user)):
-        if current_user.role not in required_roles:
-            raise HTTPException(
-                status_code=403, 
-                detail="Access denied. Backstage pass required."
-            )
-        return current_user
-    return role_checker
-
-# Example of protecting an organizer-only endpoint
-@app.get("/organizer/guest-list")
-async def get_admin_data(
-    current_user: User = Depends(require_roles([UserRole.ORGANIZER]))
-):
-    return {"message": "Here is the super secret guest list!"}
-```
+# Removed Role-Based Access Control section
 
 ## 📋 Security Concepts Summary Table
 
@@ -171,7 +137,7 @@ async def get_admin_data(
 | **Bearer Tokens** | Token presentation in requests | `Authorization: Bearer <token>` | Standard way to include authentication in HTTP headers |
 | **OAuth2PasswordBearer** | Extract and validate tokens | `OAuth2PasswordBearer(tokenUrl="auth/login")` | Automatic token extraction from requests |
 | **Dependency Injection** | Add security to routes | `Depends(get_current_user)` | Protect endpoints and get authenticated user data |
-| **Role-Based Access Control** | Restrict access by user role | `Depends(require_roles([UserRole.ORGANIZER]))` | Fine-grained authorization control |
+<!-- Removed RBAC row -->
 | **HTTP Status Codes** | Proper security responses | `401 Unauthorized`, `403 Forbidden` | Standard HTTP security semantics |
 | **Rate Limiting** | Prevent brute force attacks | `slowapi.Limiter` | Protection against automated attacks |
 | **Environment Variables** | Secure config storage | `SECRET_KEY = os.getenv("SECRET_KEY")` | Keep sensitive values out of code |
@@ -217,12 +183,6 @@ Open your browser to `http://127.0.0.1:8000/docs` to see the interactive API doc
     -   In the popup, paste your token in the format `Bearer <YOUR_TOKEN>`.
     -   Now, execute the endpoint. You should see your user details.
 
-4.  **Test Organizer Access (Failure)**:
-    -   Try to access `GET /organizer/guest-list`. It will fail with a `403 Forbidden` error because your user is a "guest", not an "organizer".
-
-5.  **Test Organizer Access (Success)**:
-    -   Log in with the pre-created organizer user (`username`: "organizer", `password`: "OrganizerPass123!").
-    -   Get the new token and authorize with it.
-    -   Now, try `GET /organizer/guest-list` again. It will succeed!
+<!-- Removed role-based testing steps -->
 
 **Key Takeaway**: Security isn't an afterthought. By understanding these core principles, you can build robust and secure applications from day one. 🎟️🔒 

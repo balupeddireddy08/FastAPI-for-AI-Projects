@@ -242,27 +242,7 @@
                         </div>
                     </div>
                 </div>
-                
-                <div class="feature-box" onclick="toggleFeature('roles-box')">
-                    <div class="feature-icon">🧢</div>
-                    <h3>Different Passes</h3>
-                    <div id="roles-box" class="feature-content">
-                        <p><strong>Authorization</strong> controls what you can access:</p>
-                        <div class="passes">
-                            <div class="pass guest-pass">
-                                <span class="icon">🎪</span>
-                                <h4>GUEST</h4>
-                                <p>Basic access only</p>
-                            </div>
-                            <div class="pass organizer-pass">
-                                <span class="icon">🎭</span>
-                                <h4>ORGANIZER</h4>
-                                <p>Full backstage access</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
+                      <!-- Removed role-based feature box -->               
                 <div class="feature-box" onclick="toggleFeature('token-box')">
                     <div class="feature-icon">🔐</div>
                     <h3>Security Tech</h3>
@@ -302,10 +282,7 @@
                         <span class="try-number">3</span>
                         <span>Access protected resources</span>
                     </div>
-                    <div class="try-step">
-                        <span class="try-number">4</span>
-                        <span>See how roles control access</span>
-                    </div>
+                    <!-- Removed role-based step -->
                 </div>
                 <button id="startDemo" class="btn-secondary">Start the Demo →</button>
             </div>
@@ -354,15 +331,15 @@
                 </div>
             </div>
 
-            <div class="card">
-                <h2>Demo Login</h2>
-                <p>Try the pre-created organizer account:</p>
-                <ul>
-                    <li><strong>Username:</strong> organizer</li>
-                    <li><strong>Password:</strong> OrganizerPass123!</li>
-                </ul>
-                <button id="demoLoginBtn" class="btn-secondary">Quick Login as Organizer</button>
-            </div>
+                            <div class="card">
+                    <h2>Demo Login</h2>
+                    <p>Try the pre-created account:</p>
+                    <ul>
+                        <li><strong>Username:</strong> demo</li>
+                        <li><strong>Password:</strong> DemoPass123!</li>
+                    </ul>
+                    <button id="demoLoginBtn" class="btn-secondary">Quick Login</button>
+                </div>
         </div>
         
         <!-- Protected Resources Tab -->
@@ -383,12 +360,7 @@
                     <div id="profileResult" class="profile-info"></div>
                 </div>
                 
-                <div class="card">
-                    <h2>Guest List (Organizers Only)</h2>
-                    <p>This endpoint requires the ORGANIZER role:</p>
-                    <button id="fetchGuestListBtn" class="btn-secondary">View Guest List</button>
-                    <div id="guestListResult"></div>
-                </div>
+                <!-- Removed role-based endpoint card -->
             </div>
         </div>
     </div>
@@ -483,7 +455,7 @@
         
         // Demo login button
         document.getElementById('demoLoginBtn').addEventListener('click', async () => {
-            await login('organizer', 'OrganizerPass123!');
+            await login('demo', 'DemoPass123!');
         });
         
         // Login function
@@ -558,12 +530,10 @@
                 }
                 
                 // Display profile information
-                let roleClass = data.role === 'organizer' ? 'role-organizer' : 'role-guest';
                 document.getElementById('profileResult').innerHTML = `
                     <h3>Profile Information</h3>
                     <p><strong>Username:</strong> ${data.username}</p>
                     <p><strong>Email:</strong> ${data.email}</p>
-                    <p><strong>Role:</strong> <span class="role-badge ${roleClass}">${data.role}</span></p>
                 `;
                 
             } catch (error) {
@@ -573,50 +543,7 @@
         });
         
         // Fetch guest list button
-        document.getElementById('fetchGuestListBtn').addEventListener('click', async () => {
-            if (!currentToken) {
-                document.getElementById('guestListResult').innerHTML = 
-                    '<div class="error">No token available. Please login first.</div>';
-                return;
-            }
-            
-            try {
-                const response = await fetch('/organizer/guest-list', {
-                    headers: {
-                        'Authorization': `Bearer ${currentToken}`
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.detail || 'Failed to fetch guest list');
-                }
-                
-                // Display the guest list
-                let guestListHtml = '<h3>Guest List</h3>';
-                if (data.guest_list && data.guest_list.length > 0) {
-                    guestListHtml += '<ul>';
-                    data.guest_list.forEach(guest => {
-                        guestListHtml += `<li>${guest}</li>`;
-                    });
-                    guestListHtml += '</ul>';
-                } else {
-                    guestListHtml += '<p>No guests found.</p>';
-                }
-                
-                document.getElementById('guestListResult').innerHTML = guestListHtml;
-                
-            } catch (error) {
-                document.getElementById('guestListResult').innerHTML = 
-                    `<div class="error">${error.message}</div>`;
-                    
-                if (error.message.includes("Access denied") || error.message.includes("403")) {
-                    document.getElementById('guestListResult').innerHTML += 
-                        '<p>This endpoint requires the ORGANIZER role. Your current user does not have this role.</p>';
-                }
-            }
-        });
+        // Removed guest list fetching functionality
         
         // Go to auth button
         document.getElementById('goToAuthBtn').addEventListener('click', () => {
