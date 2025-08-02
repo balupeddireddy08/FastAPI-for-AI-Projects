@@ -5,18 +5,664 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎟️ Secure Concert API</title>
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; text-align: center; }
-        h1 { color: #4a4a4a; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        a { color: #3273dc; text-decoration: none; font-weight: bold; }
-        a:hover { text-decoration: underline; }
+        body { font-family: 'Arial', sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; }
+        h1, h2 { color: #4a4a4a; text-align: center; }
+        h3 { margin-top: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #4CAF50; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #cccccc; cursor: not-allowed; }
+        .btn-secondary { background-color: #3273dc; }
+        .btn-secondary:hover { background-color: #2366d1; }
+        .btn-danger { background-color: #e74c3c; }
+        .btn-danger:hover { background-color: #c0392b; }
+        .error { color: #e74c3c; margin-top: 5px; font-size: 14px; }
+        .success { color: #2ecc71; margin-top: 5px; font-size: 14px; }
+        .tabs { display: flex; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid #ddd; border-bottom: none; border-radius: 8px 8px 0 0; margin-right: 5px; }
+        .tab.active { background-color: white; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .token-display { background: #f8f9fa; padding: 10px; border-radius: 4px; word-break: break-all; margin-top: 10px; border: 1px solid #ddd; }
+        .profile-info { margin-top: 20px; }
+        .role-badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .role-guest { background-color: #3498db; color: white; }
+        .role-organizer { background-color: #f1c40f; color: #333; }
+        .section { margin-bottom: 30px; }
+        #logoutBtn { display: none; }
+        
+        /* New styles for interactive intro */
+        .feature-boxes { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            justify-content: space-between; 
+            margin-bottom: 25px;
+        }
+        .feature-box { 
+            flex: 1; 
+            min-width: 200px; 
+            border-radius: 8px; 
+            padding: 15px; 
+            background: white; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            text-align: center;
+        }
+        .feature-box:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+        .feature-icon { 
+            font-size: 2.5rem; 
+            margin-bottom: 10px; 
+        }
+        .feature-content { 
+            height: 0; 
+            overflow: hidden; 
+            transition: height 0.3s ease; 
+            opacity: 0;
+            margin-top: 10px;
+            text-align: left;
+        }
+        .feature-content.expanded { 
+            height: auto; 
+            opacity: 1; 
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            margin-top: 15px;
+        }
+        
+        .step-row { 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center; 
+            margin: 15px 0; 
+            flex-wrap: wrap;
+        }
+        .step { 
+            text-align: center; 
+            flex: 1; 
+            min-width: 80px; 
+            padding: 8px;
+        }
+        .step-arrow { 
+            font-size: 1.5rem; 
+            color: #888;
+            padding: 0 5px;
+        }
+        .step .icon { 
+            font-size: 1.8rem; 
+            display: block; 
+            margin-bottom: 5px;
+        }
+        .step p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+        
+        .passes { 
+            display: flex; 
+            justify-content: space-around; 
+            gap: 15px;
+        }
+        .pass { 
+            border-radius: 8px; 
+            padding: 12px; 
+            flex: 1; 
+            text-align: center;
+        }
+        .guest-pass { background-color: rgba(52, 152, 219, 0.15); }
+        .organizer-pass { background-color: rgba(241, 196, 15, 0.15); }
+        .pass .icon { font-size: 2rem; margin-bottom: 5px; }
+        .pass h4 { margin: 5px 0; }
+        .pass p { margin: 5px 0; font-size: 0.9rem; }
+        
+        .token-parts { 
+            display: flex; 
+            border-radius: 6px; 
+            overflow: hidden; 
+            margin-top: 15px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        .token-part { 
+            padding: 10px; 
+            flex: 1; 
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        .token-part span { 
+            font-weight: bold; 
+            font-size: 0.9rem;
+        }
+        .token-part small { 
+            font-size: 0.75rem; 
+            opacity: 0.8;
+        }
+        .header { background-color: #f8d7da; }
+        .payload { background-color: #d1ecf1; }
+        .signature { background-color: #d4edda; }
+        
+        .try-it-box { 
+            background: linear-gradient(135deg, #6e8efb, #a777e3); 
+            color: white; 
+            border-radius: 8px; 
+            padding: 20px; 
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .try-it-box h3 { 
+            color: white; 
+            margin-top: 0;
+        }
+        .try-steps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .try-step {
+            background: rgba(255,255,255,0.2);
+            border-radius: 50px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        .try-number {
+            background: white;
+            color: #a777e3;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        #startDemo {
+            background-color: white;
+            color: #6e8efb;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        #startDemo:hover {
+            background-color: rgba(255,255,255,0.9);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎟️ Welcome to the Secure Concert API!</h1>
-        <p>This project demonstrates key security features in FastAPI, including authentication and authorization.</p>
-        <p>Head over to the <a href="/docs">API Documentation</a> to register, log in, and test the protected endpoints.</p>
+        <h1>🎟️ Secure Concert API Demo</h1>
+        <p style="text-align: center;">This interactive demo showcases FastAPI security features with a concert ticket system.</p>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="intro">Introduction</div>
+            <div class="tab" data-tab="auth">Authentication</div>
+            <div class="tab" data-tab="protected">Protected Resources</div>
+        </div>
+        
+        <!-- Introduction Tab -->
+        <div id="intro" class="tab-content active">
+            <h2>Concert Security Explained Simply</h2>
+            
+            <div class="feature-boxes">
+                <div class="feature-box" onclick="toggleFeature('auth-box')">
+                    <div class="feature-icon">🎟️</div>
+                    <h3>Digital Tickets</h3>
+                    <div id="auth-box" class="feature-content">
+                        <p><strong>Authentication</strong> is like checking your concert ticket:</p>
+                        <div class="step-row">
+                            <div class="step">
+                                <span class="icon">📝</span>
+                                <p>Register<br>(Buy a ticket)</p>
+                            </div>
+                            <div class="step-arrow">→</div>
+                            <div class="step">
+                                <span class="icon">🔑</span>
+                                <p>Login<br>(Get ticket)</p>
+                            </div>
+                            <div class="step-arrow">→</div>
+                            <div class="step">
+                                <span class="icon">✅</span>
+                                <p>Access<br>(Enter venue)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="feature-box" onclick="toggleFeature('roles-box')">
+                    <div class="feature-icon">🧢</div>
+                    <h3>Different Passes</h3>
+                    <div id="roles-box" class="feature-content">
+                        <p><strong>Authorization</strong> controls what you can access:</p>
+                        <div class="passes">
+                            <div class="pass guest-pass">
+                                <span class="icon">🎪</span>
+                                <h4>GUEST</h4>
+                                <p>Basic access only</p>
+                            </div>
+                            <div class="pass organizer-pass">
+                                <span class="icon">🎭</span>
+                                <h4>ORGANIZER</h4>
+                                <p>Full backstage access</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="feature-box" onclick="toggleFeature('token-box')">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Security Tech</h3>
+                    <div id="token-box" class="feature-content">
+                        <p>JWT tokens are your digital tickets:</p>
+                        <div class="token-parts">
+                            <div class="token-part header">
+                                <span>Header</span>
+                                <small>Ticket type</small>
+                            </div>
+                            <div class="token-part payload">
+                                <span>Payload</span>
+                                <small>Your identity & roles</small>
+                            </div>
+                            <div class="token-part signature">
+                                <span>Signature</span>
+                                <small>Anti-tampering seal</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="try-it-box">
+                <h3>🚀 Try It Yourself!</h3>
+                <p>Explore the tabs above to:</p>
+                <div class="try-steps">
+                    <div class="try-step">
+                        <span class="try-number">1</span>
+                        <span>Register a new guest</span>
+                    </div>
+                    <div class="try-step">
+                        <span class="try-number">2</span>
+                        <span>Login to get your digital ticket</span>
+                    </div>
+                    <div class="try-step">
+                        <span class="try-number">3</span>
+                        <span>Access protected resources</span>
+                    </div>
+                    <div class="try-step">
+                        <span class="try-number">4</span>
+                        <span>See how roles control access</span>
+                    </div>
+                </div>
+                <button id="startDemo" class="btn-secondary">Start the Demo →</button>
+            </div>
+        </div>
+        
+        <!-- Authentication Tab -->
+        <div id="auth" class="tab-content">
+            <div class="card">
+                <h2>User Registration</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regUsername">Username:</label>
+                        <input type="text" id="regUsername" required minlength="3">
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmail">Email:</label>
+                        <input type="email" id="regEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regPassword">Password:</label>
+                        <input type="password" id="regPassword" required minlength="8">
+                    </div>
+                    <button type="submit">Register</button>
+                    <div id="registerMessage"></div>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>User Login</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit">Login</button>
+                    <div id="loginMessage"></div>
+                </form>
+                <div id="tokenSection" style="display: none;">
+                    <h3>Your Access Token (Digital Ticket):</h3>
+                    <div class="token-display" id="tokenDisplay"></div>
+                    <p><small>This JWT token will be sent with your requests to access protected resources.</small></p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Demo Login</h2>
+                <p>Try the pre-created organizer account:</p>
+                <ul>
+                    <li><strong>Username:</strong> organizer</li>
+                    <li><strong>Password:</strong> OrganizerPass123!</li>
+                </ul>
+                <button id="demoLoginBtn" class="btn-secondary">Quick Login as Organizer</button>
+            </div>
+        </div>
+        
+        <!-- Protected Resources Tab -->
+        <div id="protected" class="tab-content">
+            <div id="authRequired" class="card">
+                <h2>Authentication Required</h2>
+                <p>You need to login first to access protected resources.</p>
+                <button id="goToAuthBtn" class="btn-secondary">Go to Login</button>
+            </div>
+            
+            <div id="protectedContent" style="display: none;">
+                <button id="logoutBtn" class="btn-danger">Logout</button>
+                
+                <div class="card">
+                    <h2>My Profile</h2>
+                    <p>This endpoint requires authentication (a valid token):</p>
+                    <button id="fetchProfileBtn" class="btn-secondary">Fetch My Profile</button>
+                    <div id="profileResult" class="profile-info"></div>
+                </div>
+                
+                <div class="card">
+                    <h2>Guest List (Organizers Only)</h2>
+                    <p>This endpoint requires the ORGANIZER role:</p>
+                    <button id="fetchGuestListBtn" class="btn-secondary">View Guest List</button>
+                    <div id="guestListResult"></div>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Global state
+        let currentToken = null;
+        
+        // Tab switching functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Toggle feature box content
+        function toggleFeature(id) {
+            const content = document.getElementById(id);
+            if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                // Animate closing
+                content.style.height = content.scrollHeight + 'px';
+                setTimeout(() => {
+                    content.style.height = '0px';
+                    content.style.opacity = '0';
+                }, 10);
+            } else {
+                // Expand all feature boxes
+                document.querySelectorAll('.feature-content').forEach(box => {
+                    box.classList.remove('expanded');
+                    box.style.height = '0px';
+                    box.style.opacity = '0';
+                });
+                
+                // Expand this one
+                content.classList.add('expanded');
+                content.style.height = content.scrollHeight + 'px';
+                content.style.opacity = '1';
+            }
+        }
+        
+        // Register form submission
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const messageElem = document.getElementById('registerMessage');
+            
+            try {
+                messageElem.className = '';
+                messageElem.textContent = 'Registering...';
+                
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: document.getElementById('regUsername').value,
+                        email: document.getElementById('regEmail').value,
+                        password: document.getElementById('regPassword').value
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Registration failed');
+                }
+                
+                messageElem.className = 'success';
+                messageElem.textContent = 'Registration successful! You can now login.';
+                document.getElementById('registerForm').reset();
+                
+            } catch (error) {
+                messageElem.className = 'error';
+                messageElem.textContent = error.message;
+            }
+        });
+        
+        // Login form submission
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await login(
+                document.getElementById('username').value,
+                document.getElementById('password').value
+            );
+        });
+        
+        // Demo login button
+        document.getElementById('demoLoginBtn').addEventListener('click', async () => {
+            await login('organizer', 'OrganizerPass123!');
+        });
+        
+        // Login function
+        async function login(username, password) {
+            const messageElem = document.getElementById('loginMessage');
+            const tokenSection = document.getElementById('tokenSection');
+            
+            try {
+                messageElem.className = '';
+                messageElem.textContent = 'Logging in...';
+                tokenSection.style.display = 'none';
+                
+                // Prepare form data for login (required by OAuth2)
+                const formData = new FormData();
+                formData.append('username', username);
+                formData.append('password', password);
+                
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Login failed');
+                }
+                
+                // Store the token and show success
+                currentToken = data.access_token;
+                
+                messageElem.className = 'success';
+                messageElem.textContent = 'Login successful!';
+                
+                // Display the token
+                tokenSection.style.display = 'block';
+                document.getElementById('tokenDisplay').textContent = currentToken;
+                
+                // Update UI to show we're logged in
+                updateAuthStatus(true);
+                
+                // Automatically switch to protected tab
+                setTimeout(() => {
+                    document.querySelector('.tab[data-tab="protected"]').click();
+                }, 1000);
+                
+            } catch (error) {
+                messageElem.className = 'error';
+                messageElem.textContent = error.message;
+            }
+        }
+        
+        // Fetch profile button
+        document.getElementById('fetchProfileBtn').addEventListener('click', async () => {
+            if (!currentToken) {
+                document.getElementById('profileResult').innerHTML = 
+                    '<div class="error">No token available. Please login first.</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/attendees/me', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to fetch profile');
+                }
+                
+                // Display profile information
+                let roleClass = data.role === 'organizer' ? 'role-organizer' : 'role-guest';
+                document.getElementById('profileResult').innerHTML = `
+                    <h3>Profile Information</h3>
+                    <p><strong>Username:</strong> ${data.username}</p>
+                    <p><strong>Email:</strong> ${data.email}</p>
+                    <p><strong>Role:</strong> <span class="role-badge ${roleClass}">${data.role}</span></p>
+                `;
+                
+            } catch (error) {
+                document.getElementById('profileResult').innerHTML = 
+                    `<div class="error">${error.message}</div>`;
+            }
+        });
+        
+        // Fetch guest list button
+        document.getElementById('fetchGuestListBtn').addEventListener('click', async () => {
+            if (!currentToken) {
+                document.getElementById('guestListResult').innerHTML = 
+                    '<div class="error">No token available. Please login first.</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/organizer/guest-list', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Failed to fetch guest list');
+                }
+                
+                // Display the guest list
+                let guestListHtml = '<h3>Guest List</h3>';
+                if (data.guest_list && data.guest_list.length > 0) {
+                    guestListHtml += '<ul>';
+                    data.guest_list.forEach(guest => {
+                        guestListHtml += `<li>${guest}</li>`;
+                    });
+                    guestListHtml += '</ul>';
+                } else {
+                    guestListHtml += '<p>No guests found.</p>';
+                }
+                
+                document.getElementById('guestListResult').innerHTML = guestListHtml;
+                
+            } catch (error) {
+                document.getElementById('guestListResult').innerHTML = 
+                    `<div class="error">${error.message}</div>`;
+                    
+                if (error.message.includes("Access denied") || error.message.includes("403")) {
+                    document.getElementById('guestListResult').innerHTML += 
+                        '<p>This endpoint requires the ORGANIZER role. Your current user does not have this role.</p>';
+                }
+            }
+        });
+        
+        // Go to auth button
+        document.getElementById('goToAuthBtn').addEventListener('click', () => {
+            document.querySelector('.tab[data-tab="auth"]').click();
+        });
+        
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            currentToken = null;
+            updateAuthStatus(false);
+            document.getElementById('loginForm').reset();
+            document.getElementById('loginMessage').textContent = '';
+            document.getElementById('tokenSection').style.display = 'none';
+            document.getElementById('profileResult').innerHTML = '';
+            document.getElementById('guestListResult').innerHTML = '';
+            document.querySelector('.tab[data-tab="auth"]').click();
+        });
+        
+        // Start demo button
+        document.getElementById('startDemo').addEventListener('click', () => {
+            document.querySelector('.tab[data-tab="auth"]').click();
+        });
+        
+        // Auto-expand first feature box
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                toggleFeature('auth-box');
+            }, 500);
+        });
+        
+        // Update authentication status UI
+        function updateAuthStatus(isAuthenticated) {
+            const authRequired = document.getElementById('authRequired');
+            const protectedContent = document.getElementById('protectedContent');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (isAuthenticated) {
+                authRequired.style.display = 'none';
+                protectedContent.style.display = 'block';
+                logoutBtn.style.display = 'block';
+            } else {
+                authRequired.style.display = 'block';
+                protectedContent.style.display = 'none';
+                logoutBtn.style.display = 'none';
+            }
+        }
+    </script>
 </body>
 </html> 

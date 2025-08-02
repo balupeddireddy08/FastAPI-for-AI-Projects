@@ -1,6 +1,6 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Path, Query, Depends, Header
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from enum import Enum
 
 # Initialize the Magical Digital Library!
@@ -9,6 +9,16 @@ app = FastAPI(
     description="Explore FastAPI routing: path, query, and modular routes!",
     version="1.0.0"
 )
+
+# Global book database - used for persistent storage during the session
+BOOK_DB = {
+    1: {"id": 1, "title": "The FastAPI Guide", "author": "Coding Expert", "genre": "sci_fi", "pages": 320},
+    2: {"id": 2, "title": "Python Routing Basics", "author": "Route Master", "genre": "mystery", "pages": 250},
+    3: {"id": 3, "title": "Web API Adventures", "author": "Tech Explorer", "genre": "fantasy", "pages": 280},
+    4: {"id": 4, "title": "API Love Story", "author": "Code Romantic", "genre": "romance", "pages": 190},
+    5: {"id": 5, "title": "HTTP Protocol Mysteries", "author": "Network Sleuth", "genre": "mystery", "pages": 310},
+    6: {"id": 6, "title": "Future of APIs", "author": "Forward Thinker", "genre": "sci_fi", "pages": 340}
+}
 
 # Enums for better organization
 class BookGenre(str, Enum):
@@ -44,6 +54,12 @@ async def library_entrance():
 
 # === BOOK DISCOVERY ROUTES (Focus on Parameters) ===
 
+# Get all books for populating dropdowns
+@app.get("/books/")
+def get_all_books():
+    """Get a list of all books in the library"""
+    return list(BOOK_DB.values())
+
 # Route with path parameter - Find specific book
 @app.get("/books/{book_id}")
 def get_book_by_id(
@@ -52,11 +68,8 @@ def get_book_by_id(
     """
     Get book details by ID. Demonstrates Path Parameters. 📖
     """
-    # Mock data for demonstration
-    if book_id == 1:
-        return {"id": 1, "title": "The FastAPI Guide", "author": "Coding Expert", "genre": "sci_fi"}
-    elif book_id == 2:
-        return {"id": 2, "title": "Python Routing Basics", "author": "Route Master", "genre": "mystery"}
+    if book_id in BOOK_DB:
+        return BOOK_DB[book_id]
     raise HTTPException(status_code=404, detail="Book not found")
 
 # Route with query parameters - Search books
@@ -70,14 +83,8 @@ def search_books(
     Search for books using query parameters. Demonstrates Query Parameters. 🔍
     """
     results = []
-    # Simplified mock search logic
-    mock_books = [
-        {"title": "FastAPI in Action", "author": "Dev Guru", "genre": BookGenre.SCI_FI, "pages": 400},
-        {"title": "Mystery of the Missing Route", "author": "Enigma", "genre": BookGenre.MYSTERY, "pages": 250},
-        {"title": "Romance with Routes", "author": "Love Codes", "genre": BookGenre.ROMANCE, "pages": 300}
-    ]
-
-    for book in mock_books:
+    
+    for book_id, book in BOOK_DB.items():
         match_keyword = keyword.lower() in book["title"].lower() or keyword.lower() in book["author"].lower()
         match_pages = True if max_pages is None else book["pages"] <= max_pages
         match_genre = True if genre is None else book["genre"] == genre
@@ -93,7 +100,15 @@ def explore_genre(genre_name: BookGenre):
     """
     Explore books by genre. Demonstrates Enum Path Parameters. 🏰
     """
-    return {"message": f"Exploring the {genre_name.value.title()} genre!", "genre": genre_name.value}
+    # Filter books by the selected genre
+    genre_books = [book for book_id, book in BOOK_DB.items() if book["genre"] == genre_name.value]
+    
+    return {
+        "message": f"Exploring the {genre_name.value.title()} genre!", 
+        "genre": genre_name.value,
+        "books": genre_books,
+        "count": len(genre_books)
+    }
 
 
 # === MODULAR ROUTING WITH APIRouter ===
@@ -139,8 +154,28 @@ def add_book(book: BookInfo, library_card = Depends(get_library_card)):
     if library_card["status"] != "active":
         raise HTTPException(status_code=403, detail="Access denied. Valid library card required.")
     
-    # In a real application, you would save the book to a database.
-    return {"message": "Book added successfully!", "book_title": book.title, "genre": book.genre.value}
+    # Create a new book ID (just increment the highest existing ID)
+    new_id = max(BOOK_DB.keys()) + 1 if BOOK_DB else 1
+    
+    # Create new book entry
+    new_book = {
+        "id": new_id,
+        "title": book.title,
+        "author": book.author,
+        "genre": book.genre.value,
+        "pages": 300  # Default page count
+    }
+    
+    # Add to our database
+    BOOK_DB[new_id] = new_book
+    
+    return {
+        "message": "Book added successfully!", 
+        "book_title": book.title, 
+        "genre": book.genre.value,
+        "book_id": new_id,
+        "book": new_book
+    }
 
 # Route to update an existing book (PUT request body and path parameter)
 @book_management_router.put("/{book_id}")
@@ -152,12 +187,18 @@ def update_book(book_id: int, book_update: BookInfo, library_card = Depends(get_
     if library_card["status"] != "active":
         raise HTTPException(status_code=403, detail="Access denied. Valid library card required.")
 
-    # In a real application, you would update the book in a database.
-    # Mock check if book exists
-    if book_id not in [1, 2]: # Assuming book IDs 1 and 2 exist from previous mocks
+    if book_id not in BOOK_DB:
         raise HTTPException(status_code=404, detail="Book to update not found.")
-
-    return {"message": f"Book ID {book_id} updated successfully!", "new_title": book_update.title, "new_genre": book_update.genre.value}
+    
+    # Update the book in our database
+    BOOK_DB[book_id]["title"] = book_update.title
+    BOOK_DB[book_id]["author"] = book_update.author
+    BOOK_DB[book_id]["genre"] = book_update.genre.value
+    
+    return {"message": f"Book ID {book_id} updated successfully!", 
+            "new_title": book_update.title, 
+            "new_genre": book_update.genre.value, 
+            "updated_book": BOOK_DB[book_id]}
 
 # Include the new book_management_router in the main FastAPI application
 app.include_router(book_management_router)

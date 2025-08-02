@@ -118,6 +118,12 @@
             background-color: #e8f5e9;
             border-left: 4px solid #2e7d32;
         }
+        .books-container {
+            margin-top: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -140,9 +146,7 @@
             <h2>📖 Find Book by ID</h2>
             <p>Get details about a specific book using path parameters.</p>
             <select id="book-id">
-                <option value="1">Book ID: 1</option>
-                <option value="2">Book ID: 2</option>
-                <option value="3">Book ID: 3 (Not Found)</option>
+                <option value="">-- Loading Books --</option>
             </select>
             <button onclick="fetchBookById()">Get Book Details</button>
             <div id="book-details-result" class="result"></div>
@@ -246,9 +250,7 @@
             <div class="form-group">
                 <label for="update-book-id">Book ID:</label>
                 <select id="update-book-id">
-                    <option value="1">Book ID: 1</option>
-                    <option value="2">Book ID: 2</option>
-                    <option value="3">Book ID: 3 (Not Found)</option>
+                    <option value="">-- Loading Books --</option>
                 </select>
             </div>
             <div class="form-group">
@@ -282,6 +284,56 @@
     </div>
 
     <script>
+        // Load all books and populate dropdowns when the page loads
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadBooks();
+        });
+        
+        // Function to load books and populate dropdowns
+        async function loadBooks() {
+            try {
+                const response = await fetch('/books/');
+                const books = await response.json();
+                
+                // Get references to our select elements
+                const bookIdSelect = document.getElementById('book-id');
+                const updateBookIdSelect = document.getElementById('update-book-id');
+                
+                // Clear existing options
+                bookIdSelect.innerHTML = '';
+                updateBookIdSelect.innerHTML = '';
+                
+                // Add options for each book
+                books.forEach(book => {
+                    // For book-id dropdown
+                    const option1 = document.createElement('option');
+                    option1.value = book.id;
+                    option1.textContent = `${book.title} (ID: ${book.id})`;
+                    bookIdSelect.appendChild(option1);
+                    
+                    // For update-book-id dropdown
+                    const option2 = document.createElement('option');
+                    option2.value = book.id;
+                    option2.textContent = `${book.title} (ID: ${book.id})`;
+                    updateBookIdSelect.appendChild(option2);
+                });
+                
+                // Add a "not found" option for testing error handling
+                const notFoundOption1 = document.createElement('option');
+                notFoundOption1.value = '999';
+                notFoundOption1.textContent = 'Not Found (ID: 999)';
+                bookIdSelect.appendChild(notFoundOption1);
+                
+                const notFoundOption2 = document.createElement('option');
+                notFoundOption2.value = '999';
+                notFoundOption2.textContent = 'Not Found (ID: 999)';
+                updateBookIdSelect.appendChild(notFoundOption2);
+                
+            } catch (error) {
+                console.error('Error loading books:', error);
+            }
+        }
+        
         async function fetchBookById() {
             const bookId = document.getElementById('book-id').value;
             const resultDiv = document.getElementById('book-details-result');
@@ -301,6 +353,7 @@
                             <div>Author: ${data.author}</div>
                             <div>Genre: ${data.genre}</div>
                             <div>ID: ${data.id}</div>
+                            <div>Pages: ${data.pages || 'Unknown'}</div>
                         </div>
                     `;
                 } else {
@@ -374,10 +427,31 @@
                 
                 if (response.ok) {
                     resultDiv.className = 'result success';
+                    
+                    let booksHtml = '';
+                    if (data.books && data.books.length > 0) {
+                        data.books.forEach(book => {
+                            booksHtml += `
+                                <div class="book-item">
+                                    <div class="book-title">${book.title}</div>
+                                    <div>Author: ${book.author}</div>
+                                    <div>ID: ${book.id}</div>
+                                    ${book.pages ? `<div>Pages: ${book.pages}</div>` : ''}
+                                </div>
+                            `;
+                        });
+                    } else {
+                        booksHtml = '<p>No books found in this genre.</p>';
+                    }
+                    
                     resultDiv.innerHTML = `
                         <h3>Genre Exploration</h3>
                         <p>${data.message}</p>
                         <p>Selected genre: ${data.genre}</p>
+                        <p>Found ${data.count} book(s) in this genre:</p>
+                        <div class="books-container">
+                            ${booksHtml}
+                        </div>
                     `;
                 } else {
                     resultDiv.className = 'result error';
@@ -453,7 +527,15 @@
                         <p>${data.message}</p>
                         <p>Title: ${data.book_title}</p>
                         <p>Genre: ${data.genre}</p>
+                        <p>Book ID: ${data.book_id}</p>
                     `;
+                    
+                    // Reload the book list to update dropdowns
+                    await loadBooks();
+                    
+                    // Clear the form fields
+                    document.getElementById('book-title').value = '';
+                    document.getElementById('book-author').value = '';
                 } else {
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
@@ -497,6 +579,9 @@
                         <p>New Title: ${data.new_title}</p>
                         <p>New Genre: ${data.new_genre}</p>
                     `;
+                    
+                    // Reload the book list to update dropdowns
+                    await loadBooks();
                 } else {
                     resultDiv.className = 'result error';
                     resultDiv.innerHTML = `<h3>Error</h3><p>${data.detail}</p>`;
