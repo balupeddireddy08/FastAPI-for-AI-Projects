@@ -101,7 +101,6 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Pydantic models define the structure and data types for our API.
 # This provides automatic input validation, preventing many common vulnerabilities.
 
-# Removed UserRole enum for simplicity
 
 
 class User(BaseModel):
@@ -207,18 +206,9 @@ async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
-        # Removed role retrieval from payload
-        # --- (Optional) If you wanted to check scopes in your token itself ---
-        # scopes = payload.get("scopes", [])
-        # if "me" not in scopes:
-        #     raise HTTPException(
-        #         status_code=status.HTTP_403_FORBIDDEN,
-        #         detail="Not enough permissions (missing 'me' scope)",
-        #     )
-        # ---
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)  # Removed role for simplicity
+        token_data = TokenData(username=username) 
     except JWTError:
         raise credentials_exception
 
@@ -228,7 +218,6 @@ async def get_current_user(security_token: Annotated[str, Depends(bearer_scheme)
     return user
 
 
-# Removed role-based access control dependency for simplicity
 
 
 # --- 7. API ENDPOINTS ---
@@ -257,7 +246,6 @@ async def register_user(user_data: UserCreate, request: Request):
     user_in_db = UserInDB(
         username=user_data.username,
         email=user_data.email,
-        # Removed role field
         hashed_password=hashed_password
     )
     db_users[user_data.username] = user_in_db
@@ -305,11 +293,6 @@ async def read_users_me(
     """
     return current_user
 
-
-# Removed role-protected endpoint for simplicity
-# --- CHANGE ENDS HERE ---
-
-
 # --- 8. RUN THE APPLICATION ---
 
 if __name__ == "__main__":
@@ -319,7 +302,6 @@ if __name__ == "__main__":
         demo_user = UserInDB(
             username="demo",
             email="demo@concert.com",
-            # Removed role field
             hashed_password=get_password_hash("DemoPass123!")
         )
         db_users["demo"] = demo_user

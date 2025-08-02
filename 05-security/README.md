@@ -44,9 +44,7 @@ sequenceDiagram
     API->>Auth: Validate JWT
     Auth-->>API: Valid Token + User Data
     API-->>User: User Profile
-    
-    # Removed role-based access control flow
-    
+        
     Note over User,API: Rate Limiting Protection
     User->>API: Multiple rapid login attempts
     API-->>User: 429 Too Many Requests
@@ -126,7 +124,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
     return user
 ```
 
-# Removed Role-Based Access Control section
 
 ## 📋 Security Concepts Summary Table
 
@@ -183,6 +180,5 @@ Open your browser to `http://127.0.0.1:8000/docs` to see the interactive API doc
     -   In the popup, paste your token in the format `Bearer <YOUR_TOKEN>`.
     -   Now, execute the endpoint. You should see your user details.
 
-<!-- Removed role-based testing steps -->
 
 **Key Takeaway**: Security isn't an afterthought. By understanding these core principles, you can build robust and secure applications from day one. 🎟️🔒 
