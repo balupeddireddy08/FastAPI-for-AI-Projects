@@ -11,8 +11,13 @@
         button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
         button:hover { background-color: #0056b3; }
         #order-status { font-weight: bold; font-size: 1.2em; }
-        #chat-messages { list-style-type: none; padding: 0; height: 150px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; border-radius: 5px; margin-bottom: 10px;}
-        #chat-messages li { margin-bottom: 5px; }
+        #chat-messages { list-style-type: none; padding: 0; height: 200px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; border-radius: 5px; margin-bottom: 10px; background-color: #f9f9f9;}
+        #chat-messages li { margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; max-width: 80%; clear: both; }
+        #chat-messages li.system-message { background-color: #e8e8e8; color: #555; font-style: italic; text-align: center; max-width: 100%; padding: 3px; border-radius: 4px; }
+        #chat-messages li.user-message { background-color: #007bff; color: white; float: right; }
+        #chat-messages li.other-message { background-color: #e5e5ea; color: black; float: left; }
+        #chat-messages li .username { font-weight: bold; font-size: 0.8em; margin-bottom: 2px; display: block; }
+        #username-input { margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -20,9 +25,47 @@
         <h1>🍔 Food Delivery App - Async Demo</h1>
 
         <div class="feature">
+            <h2>🔄 Restaurant List & Details (Basic Async & Concurrent)</h2>
+            <p>Features 1 & 2: Shows available restaurants with async API calls.</p>
+            <div>
+                <label for="restaurant-select">Select a restaurant:</label>
+                <select id="restaurant-select" onchange="loadRestaurantDetails()">
+                    <option value="">-- Choose a restaurant --</option>
+                    <option value="resto_123">The Spicy Spoon</option>
+                    <option value="resto_456">Pasta Paradise</option>
+                    <option value="resto_789">Sushi Supreme</option>
+                    <option value="resto_101">Burger Bliss</option>
+                    <option value="resto_202">Taco Temple</option>
+                </select>
+                <button onclick="loadFullDetails()">Load Full Details</button>
+            </div>
+            <div id="restaurant-info" style="margin-top: 15px;">
+                <div id="basic-info" style="display: none; margin-bottom: 15px;">
+                    <h3>Restaurant Info:</h3>
+                    <pre id="restaurant-details">Select a restaurant to view details</pre>
+                </div>
+                <div id="full-details" style="display: none;">
+                    <h3>Full Details (Concurrent API Calls):</h3>
+                    <div style="display: flex; gap: 20px;">
+                        <div style="flex: 1;">
+                            <h4>Menu:</h4>
+                            <ul id="menu-list"></ul>
+                        </div>
+                        <div style="flex: 1;">
+                            <h4>Reviews:</h4>
+                            <ul id="reviews-list"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature">
             <h2>1. Place an Order (Background Task)</h2>
             <p>Click to place an order. You'll get an immediate response, but the payment processing will run in the background (check your terminal).</p>
-            <button onclick="placeOrder()">Place Order for a Spicy Curry</button>
+            <div id="menu-order-buttons" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                <p>Please select a restaurant above first to see available menu items</p>
+            </div>
             <p><b>Order ID:</b> <span id="orderId"></span></p>
         </div>
 
@@ -35,6 +78,11 @@
         <div class="feature">
             <h2>3. Live Support Chat (WebSocket)</h2>
             <p>Once an order is placed, you can chat with support in real-time.</p>
+            <div id="username-input">
+                <input type="text" id="usernameText" value="User" placeholder="Your username" style="width: 50%; padding: 8px;"/>
+                <span id="user-color" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: #007bff; vertical-align: middle; margin-left: 10px;"></span>
+                <button onclick="changeColor()" type="button">Random Color</button>
+            </div>
             <ul id="chat-messages"></ul>
             <form id="chat-form" onsubmit="sendMessage(event)">
                 <input type="text" id="messageText" autocomplete="off" placeholder="Type a message..." style="width: 75%; padding: 8px;" disabled/>
@@ -47,9 +95,109 @@
         let currentOrderId = null;
         let sse_connection = null;
         let ws_connection = null;
+        let currentRestaurantId = null;
 
-        async function placeOrder() {
-            const response = await fetch('/order?restaurant_id=resto_123&item=Spicy_Curry', { method: 'POST' });
+        // Feature 1 - Basic Async: Load restaurant details
+        async function loadRestaurantDetails() {
+            const restaurantId = document.getElementById('restaurant-select').value;
+            if (!restaurantId) return;
+            
+            currentRestaurantId = restaurantId;
+            document.getElementById('full-details').style.display = 'none';
+            
+            // Show loading indicator
+            document.getElementById('restaurant-details').textContent = 'Loading...';
+            document.getElementById('basic-info').style.display = 'block';
+            
+            try {
+                const response = await fetch(`/restaurants/${restaurantId}`);
+                const data = await response.json();
+                
+                // Format and display the restaurant details
+                document.getElementById('restaurant-details').textContent = 
+                    `Name: ${data.name}\nCuisine: ${data.cuisine}\nRating: ${data.rating} ⭐`;
+                
+                // Update the order buttons based on the restaurant menu
+                updateOrderButtons(restaurantId);
+            } catch (error) {
+                document.getElementById('restaurant-details').textContent = 'Error loading restaurant details.';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Helper function to update order buttons based on selected restaurant
+        async function updateOrderButtons(restaurantId) {
+            const orderButtonsContainer = document.getElementById('menu-order-buttons');
+            orderButtonsContainer.innerHTML = '<p>Loading menu items...</p>';
+            
+            try {
+                // Fetch the menu for the selected restaurant
+                const response = await fetch(`/restaurants/${restaurantId}/full-details`);
+                const data = await response.json();
+                
+                if (data.menu && data.menu.length > 0) {
+                    orderButtonsContainer.innerHTML = '';
+                    
+                    // Create a button for each menu item
+                    data.menu.forEach(item => {
+                        const button = document.createElement('button');
+                        button.textContent = `Order ${item.replace(/_/g, ' ')}`;
+                        button.onclick = () => placeOrder(restaurantId, item.replace(/ /g, '_'));
+                        orderButtonsContainer.appendChild(button);
+                    });
+                } else {
+                    orderButtonsContainer.innerHTML = '<p>No menu items available for this restaurant</p>';
+                }
+            } catch (error) {
+                orderButtonsContainer.innerHTML = '<p>Error loading menu items</p>';
+                console.error('Error:', error);
+            }
+        }
+        
+        // Feature 2 - Concurrent Tasks: Load all restaurant details at once
+        async function loadFullDetails() {
+            const restaurantId = currentRestaurantId;
+            if (!restaurantId) {
+                alert('Please select a restaurant first');
+                return;
+            }
+            
+            // Clear previous content and show loading state
+            document.getElementById('menu-list').innerHTML = '<li>Loading menu...</li>';
+            document.getElementById('reviews-list').innerHTML = '<li>Loading reviews...</li>';
+            document.getElementById('full-details').style.display = 'block';
+            
+            try {
+                const response = await fetch(`/restaurants/${restaurantId}/full-details`);
+                const data = await response.json();
+                
+                // Update menu list
+                const menuList = document.getElementById('menu-list');
+                menuList.innerHTML = '';
+                data.menu.forEach(item => {
+                    const li = document.createElement('li');
+                    li.textContent = item;
+                    menuList.appendChild(li);
+                });
+                
+                // Update reviews list
+                const reviewsList = document.getElementById('reviews-list');
+                reviewsList.innerHTML = '';
+                data.reviews.forEach(review => {
+                    const li = document.createElement('li');
+                    li.textContent = review;
+                    reviewsList.appendChild(li);
+                });
+            } catch (error) {
+                document.getElementById('menu-list').innerHTML = '<li>Error loading menu</li>';
+                document.getElementById('reviews-list').innerHTML = '<li>Error loading reviews</li>';
+                console.error('Error:', error);
+            }
+        }
+
+        // Feature 3 - Background Tasks: Place an order
+        async function placeOrder(restaurant_id = 'resto_123', item = 'Spicy_Curry') {
+            const response = await fetch(`/order?restaurant_id=${restaurant_id}&item=${item}`, { method: 'POST' });
             const data = await response.json();
             currentOrderId = data.order_id;
             document.getElementById('orderId').textContent = currentOrderId;
@@ -97,14 +245,58 @@
             ws_connection.onopen = function() {
                 const message = document.createElement('li');
                 message.textContent = 'Connected to mock support chat!';
-                message.style.fontStyle = 'italic';
+                message.classList.add('system-message');
                 messages.appendChild(message);
             };
 
             ws_connection.onmessage = function(event) {
                 const messages = document.getElementById('chat-messages');
                 const message = document.createElement('li');
-                message.appendChild(document.createTextNode(event.data));
+                
+                // Parse the message to check if it's a system message or a user message
+                const data = event.data;
+                if (data.startsWith('A new user has joined') || data.startsWith('A user has left')) {
+                    message.classList.add('system-message');
+                    message.textContent = data;
+                } else if (data.startsWith('Message: ')) {
+                    // Extract username and message content if formatted as "Username: Message content"
+                    const msgContent = data.substring(9); // Remove "Message: " prefix
+                    
+                    if (msgContent.includes('|')) {
+                        const parts = msgContent.split('|');
+                        const username = parts[0];
+                        const actualMessage = parts[1];
+                        const color = parts[2] || '#e5e5ea';
+                        
+                        // Create username element
+                        const usernameElement = document.createElement('span');
+                        usernameElement.classList.add('username');
+                        usernameElement.textContent = username;
+                        message.appendChild(usernameElement);
+                        
+                        // Add message content
+                        message.appendChild(document.createTextNode(actualMessage));
+                        
+                        // Determine if it's my message or from another user
+                        const myUsername = document.getElementById('usernameText').value;
+                        if (username === myUsername) {
+                            message.classList.add('user-message');
+                            message.style.backgroundColor = document.getElementById('user-color').style.backgroundColor;
+                        } else {
+                            message.classList.add('other-message');
+                            message.style.backgroundColor = color;
+                        }
+                    } else {
+                        // Fallback for messages not in the expected format
+                        message.textContent = data;
+                        message.classList.add('other-message');
+                    }
+                } else {
+                    // Fallback for other message formats
+                    message.textContent = data;
+                    message.classList.add('system-message');
+                }
+                
                 messages.appendChild(message);
                 messages.scrollTop = messages.scrollHeight;
             };
@@ -113,10 +305,21 @@
         function sendMessage(event) {
             event.preventDefault();
             const input = document.getElementById("messageText");
+            const username = document.getElementById("usernameText").value || "User";
+            const color = document.getElementById("user-color").style.backgroundColor;
+            
             if (input.value && ws_connection) {
-                ws_connection.send(input.value);
+                // Format: username|message|color
+                const formattedMessage = `${username}|${input.value}|${color}`;
+                ws_connection.send(formattedMessage);
                 input.value = '';
             }
+        }
+        
+        function changeColor() {
+            // Generate a random color for the user
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+            document.getElementById("user-color").style.backgroundColor = randomColor;
         }
     </script>
 </body>

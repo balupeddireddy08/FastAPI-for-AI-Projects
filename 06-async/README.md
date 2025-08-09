@@ -73,7 +73,7 @@ graph TD
 
 1.  **Navigate to the directory:**
     ```bash
-    cd 07-async
+    cd 06-async
     ```
 
 2.  **Install dependencies:**

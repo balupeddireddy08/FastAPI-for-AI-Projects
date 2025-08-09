@@ -26,9 +26,20 @@ app = FastAPI(
 # In a real app, this would be a proper database like PostgreSQL.
 fake_db = {
     "restaurants": {
-        "resto_123": {"name": "The Spicy Spoon", "cuisine": "Indian"},
+        "resto_123": {"name": "The Spicy Spoon", "cuisine": "Indian", "rating": 4.7},
+        "resto_456": {"name": "Pasta Paradise", "cuisine": "Italian", "rating": 4.5},
+        "resto_789": {"name": "Sushi Supreme", "cuisine": "Japanese", "rating": 4.8},
+        "resto_101": {"name": "Burger Bliss", "cuisine": "American", "rating": 4.2},
+        "resto_202": {"name": "Taco Temple", "cuisine": "Mexican", "rating": 4.6},
     },
     "orders": {},
+    "menus": {
+        "resto_123": ["Butter Chicken", "Naan", "Samosa", "Chicken Tikka Masala", "Biryani"],
+        "resto_456": ["Spaghetti Carbonara", "Margherita Pizza", "Lasagna", "Tiramisu", "Risotto"],
+        "resto_789": ["California Roll", "Sashimi Platter", "Tempura", "Miso Soup", "Dragon Roll"],
+        "resto_101": ["Cheeseburger", "Bacon Burger", "Veggie Burger", "Loaded Fries", "Milkshake"],
+        "resto_202": ["Street Tacos", "Burrito", "Quesadilla", "Nachos Supreme", "Guacamole"],
+    }
 }
 # A manager for WebSocket chat rooms will be created below, with the WebSocket code.
 
@@ -64,7 +75,8 @@ async def fetch_menu(restaurant_id: str):
     """Simulates fetching the menu from a database (takes 1 second)."""
     print(f"Fetching menu for {restaurant_id}...")
     await asyncio.sleep(1)
-    return {"menu": ["Curry", "Naan", "Samosa"]}
+    # Return menu from our expanded fake database
+    return {"menu": fake_db["menus"].get(restaurant_id, ["No items available"])}
 
 async def fetch_reviews(restaurant_id: str):
     """Simulates fetching reviews from another service (takes 1.5 seconds)."""
@@ -194,6 +206,7 @@ async def websocket_support_chat(websocket: WebSocket):
             # Wait for a message from a client.
             data = await websocket.receive_text()
             # Broadcast the message to everyone in the chat room.
+            # The format is expected to be "username|message|color"
             await manager.broadcast(f"Message: {data}")
     except WebSocketDisconnect:
         manager.disconnect(websocket)
