@@ -87,13 +87,23 @@ graph TD
     ```
 
 4.  **Open the demo page:**
-    Visit **[http://localhost:8000](http://localhost:8000)** in your browser. This page demonstrates the live streaming and WebSocket features.
+    Visit **[http://localhost:8000](http://localhost:8000)** in your browser. This page demonstrates all five async features with an interactive UI.
+
+## 🌟 Enhanced UI Features
+
+The demo UI has been improved with the following features:
+
+1. **Restaurant Selection** - Choose from multiple restaurants to see their details using async API calls
+2. **Dynamic Menu Items** - Menu items change based on the selected restaurant
+3. **Concurrent API Calls** - Load full restaurant details (menu and reviews) with parallel requests
+4. **Interactive Chat** - Support for multiple users with customizable usernames and colors
+5. **Real-time Order Tracking** - Place orders and watch their status update in real time
 
 ---
 
 ## 💻 Exploring the Features with Analogies
 
-All features are explained with detailed, line-by-line comments in `main.py`. Here's a quick guide with the analogies.
+All features are explained with detailed, line-by-line comments in `main.py`. The web interface has been enhanced to provide a more interactive and comprehensive demonstration of all five async features. Here's a quick guide with the analogies.
 
 ### 1. Basic Async Endpoint: The Skilled Waiter
 -   **Analogy**: A normal waiter takes an order, goes to the kitchen, and waits. An `async` waiter takes the order, gives it to the kitchen, and immediately serves other tables while the food cooks. This is far more efficient.
@@ -123,7 +133,8 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
         """Simulates fetching the menu from a database (takes 1 second)."""
         print(f"Fetching menu for {restaurant_id}...")
         await asyncio.sleep(1)
-        return {"menu": ["Curry", "Naan", "Samosa"]}
+        # Return menu from our expanded fake database
+        return {"menu": fake_db["menus"].get(restaurant_id, ["No items available"])}
 
     async def fetch_reviews(restaurant_id: str):
         """Simulates fetching reviews from another service (takes 1.5 seconds)."""
@@ -184,7 +195,7 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
         background_tasks.add_task(process_payment_and_notify_kitchen, order_id, 15.50)
         return {"message": "Order placed successfully!", "order_id": order_id}
     ```
--   **How to test**: From the homepage UI at [http://localhost:8000](http://localhost:8000), click the "Place Order for a Spicy Curry" button. You'll get an immediate response, and you can see the background task processing in your terminal.
+-   **How to test**: From the homepage UI at [http://localhost:8000](http://localhost:8000), select a restaurant from the dropdown, then click any of the dynamically loaded order buttons. You'll get an immediate response, and you can see the background task processing in your terminal.
 
 ### 4. Streaming Responses (SSE): The Live Order Tracker
 -   **Analogy**: A live order tracker page. The server continuously pushes updates to your phone (e.g., "Preparing" -> "Out for Delivery"). It's a one-way stream of information.
@@ -251,9 +262,10 @@ All features are explained with detailed, line-by-line comments in `main.py`. He
                 # Wait for a message from a client.
                 data = await websocket.receive_text()
                 # Broadcast the message to everyone in the chat room.
+                # The format is expected to be "username|message|color"
                 await manager.broadcast(f"Message: {data}")
         except WebSocketDisconnect:
             manager.disconnect(websocket)
             await manager.broadcast("A user has left the chat.")
     ```
--   **Try it**: Open the homepage in two separate browser windows. Use the "Live Support Chat" box to send messages from one window and watch them appear instantly in the other. 
+-   **Try it**: Open the homepage in two separate browser windows. Enter different usernames and choose different colors for each window. Use the "Live Support Chat" box to send messages from one window and watch them appear instantly in the other, with distinct styling for each user.
