@@ -154,46 +154,65 @@
             }
         }
         
-        // Feature 2 - Concurrent Tasks: Load all restaurant details at once
-        async function loadFullDetails() {
-            const restaurantId = currentRestaurantId;
-            if (!restaurantId) {
-                alert('Please select a restaurant first');
-                return;
-            }
-            
-            // Clear previous content and show loading state
-            document.getElementById('menu-list').innerHTML = '<li>Loading menu...</li>';
-            document.getElementById('reviews-list').innerHTML = '<li>Loading reviews...</li>';
-            document.getElementById('full-details').style.display = 'block';
-            
-            try {
-                const response = await fetch(`/restaurants/${restaurantId}/full-details`);
-                const data = await response.json();
-                
-                // Update menu list
-                const menuList = document.getElementById('menu-list');
-                menuList.innerHTML = '';
-                data.menu.forEach(item => {
-                    const li = document.createElement('li');
-                    li.textContent = item;
-                    menuList.appendChild(li);
-                });
-                
-                // Update reviews list
-                const reviewsList = document.getElementById('reviews-list');
-                reviewsList.innerHTML = '';
-                data.reviews.forEach(review => {
-                    const li = document.createElement('li');
-                    li.textContent = review;
-                    reviewsList.appendChild(li);
-                });
-            } catch (error) {
-                document.getElementById('menu-list').innerHTML = '<li>Error loading menu</li>';
-                document.getElementById('reviews-list').innerHTML = '<li>Error loading reviews</li>';
-                console.error('Error:', error);
-            }
-        }
+        // Feature 2 - Concurrent Tasks: Load all restaurant details individually as they become available
+async function loadFullDetails() {
+    const restaurantId = currentRestaurantId;
+    if (!restaurantId) {
+        alert('Please select a restaurant first');
+        return;
+    }
+    
+    // Clear previous content and show loading state
+    document.getElementById('menu-list').innerHTML = '<li>Loading menu...</li>';
+    document.getElementById('reviews-list').innerHTML = '<li>Loading reviews...</li>';
+    document.getElementById('full-details').style.display = 'block';
+    
+    // Fetch menu (faster - 2 seconds)
+    fetchMenu(restaurantId);
+    
+    // Fetch reviews (slower - 5 seconds)
+    fetchReviews(restaurantId);
+}
+
+// Fetch just the menu - should complete faster
+async function fetchMenu(restaurantId) {
+    try {
+        const response = await fetch(`/restaurants/${restaurantId}/menu`);
+        const data = await response.json();
+        
+        // Update menu list as soon as it's available
+        const menuList = document.getElementById('menu-list');
+        menuList.innerHTML = '';
+        data.menu.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = item;
+            menuList.appendChild(li);
+        });
+    } catch (error) {
+        document.getElementById('menu-list').innerHTML = '<li>Error loading menu</li>';
+        console.error('Error loading menu:', error);
+    }
+}
+
+// Fetch just the reviews - takes longer
+async function fetchReviews(restaurantId) {
+    try {
+        const response = await fetch(`/restaurants/${restaurantId}/reviews`);
+        const data = await response.json();
+        
+        // Update reviews list as soon as it's available
+        const reviewsList = document.getElementById('reviews-list');
+        reviewsList.innerHTML = '';
+        data.reviews.forEach(review => {
+            const li = document.createElement('li');
+            li.textContent = review;
+            reviewsList.appendChild(li);
+        });
+    } catch (error) {
+        document.getElementById('reviews-list').innerHTML = '<li>Error loading reviews</li>';
+        console.error('Error loading reviews:', error);
+    }
+}
 
         // Feature 3 - Background Tasks: Place an order
         async function placeOrder(restaurant_id = 'resto_123', item = 'Spicy_Curry') {

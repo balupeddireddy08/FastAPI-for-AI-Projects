@@ -117,9 +117,9 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
         Simulates a non-blocking database call.
         """
         print(f"Fetching details for restaurant {restaurant_id}...")
-        # `await asyncio.sleep(0.5)` simulates a database query.
+        # `await asyncio.sleep(3)` simulates a database query.
         # While "waiting", the server can handle other requests.
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(3)
         return fake_db["restaurants"].get(restaurant_id, {"error": "Restaurant not found"})
     ```
 -   **Try it**: Visit [http://localhost:8000/restaurants/resto_123](http://localhost:8000/restaurants/resto_123).
@@ -130,23 +130,23 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
 -   **Code Block**:
     ```python
     async def fetch_menu(restaurant_id: str):
-        """Simulates fetching the menu from a database (takes 1 second)."""
+        """Simulates fetching the menu from a database (takes 2 second)."""
         print(f"Fetching menu for {restaurant_id}...")
-        await asyncio.sleep(1)
+        await asyncio.sleep(2)
         # Return menu from our expanded fake database
         return {"menu": fake_db["menus"].get(restaurant_id, ["No items available"])}
 
     async def fetch_reviews(restaurant_id: str):
-        """Simulates fetching reviews from another service (takes 1.5 seconds)."""
+        """Simulates fetching reviews from another service (takes 5 seconds)."""
         print(f"Fetching reviews for {restaurant_id}...")
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(5)
         return {"reviews": ["'Amazing food!'", "'A bit spicy for me.'"]}
 
     @app.get("/restaurants/{restaurant_id}/full-details")
     async def get_full_restaurant_details(restaurant_id: str):
         """
         Runs two I/O-bound tasks concurrently to fetch all restaurant details.
-        Total time is ~1.5s (the longest task), not 2.5s.
+        Total time is ~5s (the longest task), not 7s.
         """
         print(f"Fetching full details for restaurant {restaurant_id}...")
         # We start both tasks and then use `gather` to wait for both to complete.
@@ -222,7 +222,7 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
                     # `yield` sends a data chunk. SSE format is "data: {json}\n\n".
                     yield f"data: {json.dumps(event_data)}\n\n"
                     # Wait for a random time before the next status update.
-                    await asyncio.sleep(random.uniform(2, 4))
+                    await asyncio.sleep(random.uniform(2, 8))
 
         return StreamingResponse(event_generator(), media_type="text/event-stream")
     ```
