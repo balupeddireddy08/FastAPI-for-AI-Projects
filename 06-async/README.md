@@ -18,7 +18,7 @@ This example connects the following concepts using analogies:
 graph TD
     subgraph "FastAPI Async Concepts"
     A["async def - The Skilled Waiter<br/>Non-blocking request handling"]
-    B["asyncio.gather - Coffee & Sandwich<br/>Run multiple tasks concurrently"]
+    B["Independent Async Tasks<br/>Fetch menu & reviews independently"]
     C["BackgroundTasks - Online Shopping<br/>Fire-and-forget processing"]
     D["StreamingResponse - News Ticker<br/>Server-to-client streaming"]
     E["WebSocket - Phone Call<br/>Two-way real-time communication"]
@@ -42,8 +42,10 @@ graph TD
     
     A --> J["await asyncio.sleep(1)<br/>Non-blocking wait"]
     
-    B --> K["Task 1: fetch_menu()"]
-    B --> L["Task 2: fetch_reviews()"]
+    B --> K["Menu Endpoint: fetch_menu() (2s)"]
+    B --> L["Reviews Endpoint: fetch_reviews() (5s)"]
+    K --> K1["Display Menu Immediately"]
+    L --> L1["Display Reviews When Ready"]
     
     C --> M["Main Response"]
     C -.-> N["Background Processing"]
@@ -108,6 +110,22 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
 ### 1. Basic Async Endpoint: The Skilled Waiter
 -   **Analogy**: A normal waiter takes an order, goes to the kitchen, and waits. An `async` waiter takes the order, gives it to the kitchen, and immediately serves other tables while the food cooks. This is far more efficient.
 -   **Concept**: An `async` function allows the server to handle other requests while waiting for a slow I/O operation (like a database call) to complete.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant FastAPI as "FastAPI Server"
+    participant Database as "Database (simulated)"
+    
+    Client->>+FastAPI: GET /restaurants/{restaurant_id}
+    Note over FastAPI: async def get_restaurant_info()
+    FastAPI->>+Database: Fetch restaurant data
+    Note over FastAPI,Database: await asyncio.sleep(3)
+    Note over FastAPI: Server is free to handle other requests
+    Database-->>-FastAPI: Return restaurant data
+    FastAPI-->>-Client: Restaurant details JSON
+```
+
 -   **Code Block**:
     ```python
     @app.get("/restaurants/{restaurant_id}")
@@ -124,13 +142,41 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
     ```
 -   **Try it**: Visit [http://localhost:8000/restaurants/resto_123](http://localhost:8000/restaurants/resto_123).
 
-### 2. Concurrent Tasks: Ordering Coffee & A Sandwich
--   **Analogy**: Instead of ordering and waiting for coffee (2 mins) and *then* ordering and waiting for a sandwich (3 mins) for a total of 5 mins, you order both at once. You get everything in 3 minutes (the time of the longest task).
--   **Concept**: `asyncio.gather` runs multiple slow operations at the same time. The total wait time is determined by the *longest* task, not the sum of all tasks.
--   **Code Block**:
+### 2. Independent Async Tasks: Showing Results As They Arrive
+-   **Analogy**: Instead of waiting for both coffee and sandwich to be ready before serving either, we now serve each item as soon as it's ready. The coffee (menu) is ready in 2 minutes, so the customer gets that first. The sandwich (reviews) takes 5 minutes and is served when it's ready.
+-   **Concept**: Using separate API endpoints for different data allows the frontend to display results as they become available, creating a more responsive user experience.
+
+```mermaid
+sequenceDiagram
+    participant Client as "Browser"
+    participant API as "FastAPI Server"
+    participant MenuDB as "Menu Database"
+    participant ReviewsDB as "Reviews Service"
+
+    Client->>+API: Load full details request
+    API->>Client: Initial page with loading indicators
+    
+    par Menu Request
+        Client->>+API: GET /restaurants/{id}/menu
+        API->>+MenuDB: Fetch menu
+        Note over MenuDB: 2 seconds
+        MenuDB-->>-API: Menu data
+        API-->>-Client: Menu JSON
+        Note over Client: Render menu immediately
+    and Reviews Request
+        Client->>+API: GET /restaurants/{id}/reviews
+        API->>+ReviewsDB: Fetch reviews
+        Note over ReviewsDB: 5 seconds
+        ReviewsDB-->>-API: Reviews data
+        API-->>-Client: Reviews JSON
+        Note over Client: Render reviews when ready
+    end
+```
+
+-   **Backend Code**:
     ```python
     async def fetch_menu(restaurant_id: str):
-        """Simulates fetching the menu from a database (takes 2 second)."""
+        """Simulates fetching the menu from a database (takes 2 seconds)."""
         print(f"Fetching menu for {restaurant_id}...")
         await asyncio.sleep(2)
         # Return menu from our expanded fake database
@@ -141,26 +187,117 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
         print(f"Fetching reviews for {restaurant_id}...")
         await asyncio.sleep(5)
         return {"reviews": ["'Amazing food!'", "'A bit spicy for me.'"]}
+        
+    # Individual endpoints for separate menu and review fetching
+    @app.get("/restaurants/{restaurant_id}/menu")
+    async def get_restaurant_menu(restaurant_id: str):
+        """Get just the menu for a restaurant (faster endpoint)."""
+        return await fetch_menu(restaurant_id)
+
+    @app.get("/restaurants/{restaurant_id}/reviews")
+    async def get_restaurant_reviews(restaurant_id: str):
+        """Get just the reviews for a restaurant (slower endpoint)."""
+        return await fetch_reviews(restaurant_id)
 
     @app.get("/restaurants/{restaurant_id}/full-details")
     async def get_full_restaurant_details(restaurant_id: str):
-        """
-        Runs two I/O-bound tasks concurrently to fetch all restaurant details.
-        Total time is ~5s (the longest task), not 7s.
-        """
+        """Original endpoint that runs two I/O-bound tasks concurrently."""
         print(f"Fetching full details for restaurant {restaurant_id}...")
-        # We start both tasks and then use `gather` to wait for both to complete.
         menu_task = fetch_menu(restaurant_id)
         reviews_task = fetch_reviews(restaurant_id)
-        # `await` here waits for both tasks to finish.
         menu, reviews = await asyncio.gather(menu_task, reviews_task)
         return {"info": fake_db["restaurants"].get(restaurant_id), **menu, **reviews}
     ```
--   **Try it**: Visit [http://localhost:8000/restaurants/resto_123/full-details](http://localhost:8000/restaurants/resto_123/full-details). Check your terminal to see the tasks running in parallel.
+    
+-   **Frontend Code**:
+    ```javascript
+    // Feature 2 - Load all restaurant details individually as they become available
+    async function loadFullDetails() {
+        const restaurantId = currentRestaurantId;
+        if (!restaurantId) {
+            alert('Please select a restaurant first');
+            return;
+        }
+        
+        // Clear previous content and show loading state
+        document.getElementById('menu-list').innerHTML = '<li>Loading menu...</li>';
+        document.getElementById('reviews-list').innerHTML = '<li>Loading reviews...</li>';
+        document.getElementById('full-details').style.display = 'block';
+        
+        // Fetch menu (faster - 2 seconds)
+        fetchMenu(restaurantId);
+        
+        // Fetch reviews (slower - 5 seconds)
+        fetchReviews(restaurantId);
+    }
+
+    // Fetch just the menu - should complete faster
+    async function fetchMenu(restaurantId) {
+        try {
+            const response = await fetch(`/restaurants/${restaurantId}/menu`);
+            const data = await response.json();
+            
+            // Update menu list as soon as it's available
+            const menuList = document.getElementById('menu-list');
+            menuList.innerHTML = '';
+            data.menu.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                menuList.appendChild(li);
+            });
+        } catch (error) {
+            document.getElementById('menu-list').innerHTML = '<li>Error loading menu</li>';
+            console.error('Error loading menu:', error);
+        }
+    }
+
+    // Fetch just the reviews - takes longer
+    async function fetchReviews(restaurantId) {
+        try {
+            const response = await fetch(`/restaurants/${restaurantId}/reviews`);
+            const data = await response.json();
+            
+            // Update reviews list as soon as it's available
+            const reviewsList = document.getElementById('reviews-list');
+            reviewsList.innerHTML = '';
+            data.reviews.forEach(review => {
+                const li = document.createElement('li');
+                li.textContent = review;
+                reviewsList.appendChild(li);
+            });
+        } catch (error) {
+            document.getElementById('reviews-list').innerHTML = '<li>Error loading reviews</li>';
+            console.error('Error loading reviews:', error);
+        }
+    }
+    ```
+-   **Try it**: Click "Load Full Details" on the [homepage](http://localhost:8000) after selecting a restaurant. Notice how the menu appears first (after ~2 seconds) and the reviews appear later (after ~5 seconds).
 
 ### 3. Background Tasks: The Online Shopping Experience
 -   **Analogy**: You place an order online and get an "Order Confirmed" message instantly. The company handles the actual packing and shipping later, in the background. You don't have to wait on the website for that to finish.
 -   **Concept**: This lets you run a "fire-and-forget" task after sending a response to the user.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as "FastAPI Server"
+    participant Payment as "Payment Gateway"
+    participant Kitchen as "Kitchen System"
+    
+    Client->>+API: POST /order
+    API->>API: Create order in database
+    API-->>-Client: Immediate success response
+    Note over Client,API: Client gets response right away
+    
+    Note over API: Background task starts
+    API-)+Payment: Process payment
+    Note over Payment: 2 seconds
+    Payment--)-API: Payment confirmed
+    API-)+Kitchen: Notify kitchen
+    Note over Kitchen: 1 second
+    Kitchen--)-API: Order acknowledged
+```
+
 -   **Code Block**:
     ```python
     async def process_payment_and_notify_kitchen(order_id: str, amount: float):
@@ -200,6 +337,29 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
 ### 4. Streaming Responses (SSE): The Live Order Tracker
 -   **Analogy**: A live order tracker page. The server continuously pushes updates to your phone (e.g., "Preparing" -> "Out for Delivery"). It's a one-way stream of information.
 -   **Concept**: Server-Sent Events (SSE) allow the server to push a continuous stream of data to the client over a single HTTP connection.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API as "FastAPI Server"
+    
+    Client->>+API: GET /order/{id}/live-status
+    Note over API: Connection stays open
+    
+    loop Status Updates
+        Note over API: Generate new status
+        API-->>Client: Status: preparing_food
+        Note over API: Wait 2-8 seconds
+        API-->>Client: Status: quality_check
+        Note over API: Wait 2-8 seconds
+        API-->>Client: Status: out_for_delivery
+        Note over API: Wait 2-8 seconds
+        API-->>Client: Status: delivered
+    end
+    
+    Note over Client: Updates displayed in real-time
+```
+
 -   **Code Block**:
     ```python
     @app.get("/order/{order_id}/live-status", response_class=StreamingResponse)
@@ -231,6 +391,40 @@ All features are explained with detailed, line-by-line comments in `main.py`. Th
 ### 5. WebSockets: The Phone Call / Support Chat
 -   **Analogy**: A phone call with your delivery driver. Both of you can speak and listen at any time. This real-time, two-way communication is exactly what WebSockets are for.
 -   **Concept**: WebSockets provide a persistent, two-way communication channel between the client and server, perfect for real-time chat.
+
+```mermaid
+sequenceDiagram
+    participant Client1 as "User 1"
+    participant Client2 as "User 2"
+    participant Server as "FastAPI Server"
+    participant Manager as "ConnectionManager"
+    
+    Client1->>+Server: Connect to WebSocket
+    Server->>Manager: Add connection
+    Server-->>Client1: Connection accepted
+    Server->>Client1: "A new user has joined"
+    
+    Client2->>+Server: Connect to WebSocket
+    Server->>Manager: Add connection
+    Server-->>Client2: Connection accepted
+    Server->>Client1: "A new user has joined"
+    Server->>Client2: "A new user has joined"
+    
+    Client1->>Server: Send message
+    Server->>Manager: Broadcast message
+    Manager->>Client1: Forward message
+    Manager->>Client2: Forward message
+    
+    Client2->>Server: Send message
+    Server->>Manager: Broadcast message
+    Manager->>Client1: Forward message
+    Manager->>Client2: Forward message
+    
+    Client1->>Server: Disconnect
+    Server->>Manager: Remove connection
+    Server->>Client2: "A user has left"
+```
+
 -   **Code Block**:
     ```python
     class ConnectionManager:
