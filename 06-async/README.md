@@ -18,10 +18,10 @@ This example connects the following concepts using analogies:
 graph TD
     subgraph "FastAPI Async Concepts"
     A["async def - The Skilled Waiter<br/>Non-blocking request handling"]
-    E["WebSocket - Phone Call<br/>Two-way real-time communication"]
     B["Independent Async Tasks<br/>Fetch menu & reviews independently"]
     C["BackgroundTasks - Online Shopping<br/>Fire-and-forget processing"]
     D["StreamingResponse - News Ticker<br/>Server-to-client streaming"]
+    E["WebSocket - Phone Call<br/>Two-way real-time communication"]
     end
     
     subgraph "Server Resources"
