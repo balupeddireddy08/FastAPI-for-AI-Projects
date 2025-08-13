@@ -18,10 +18,10 @@ This example connects the following concepts using analogies:
 graph TD
     subgraph "FastAPI Async Concepts"
     A["async def - The Skilled Waiter<br/>Non-blocking request handling"]
+    E["WebSocket - Phone Call<br/>Two-way real-time communication"]
     B["Independent Async Tasks<br/>Fetch menu & reviews independently"]
     C["BackgroundTasks - Online Shopping<br/>Fire-and-forget processing"]
     D["StreamingResponse - News Ticker<br/>Server-to-client streaming"]
-    E["WebSocket - Phone Call<br/>Two-way real-time communication"]
     end
     
     subgraph "Server Resources"
@@ -143,7 +143,7 @@ sequenceDiagram
 -   **Try it**: Visit [http://localhost:8000/restaurants/resto_123](http://localhost:8000/restaurants/resto_123).
 
 ### 2. Independent Async Tasks: Showing Results As They Arrive
--   **Analogy**: Instead of waiting for both coffee and sandwich to be ready before serving either, we now serve each item as soon as it's ready. The coffee (menu) is ready in 2 minutes, so the customer gets that first. The sandwich (reviews) takes 5 minutes and is served when it's ready.
+-   **Analogy**: Instead of waiting for both coffee and sandwich to be ready before serving either, we now serve each item as soon as it's ready. The coffee (menu) is ready in 2 minutes, so the customer gets that first. The sandwich (reviews) takes 3 minutes and is served when it's ready.
 -   **Concept**: Using separate API endpoints for different data allows the frontend to display results as they become available, creating a more responsive user experience.
 
 ```mermaid
