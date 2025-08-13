@@ -18,10 +18,10 @@ This example connects the following concepts using analogies:
 graph TD
     subgraph "FastAPI Async Concepts"
     A["async def - The Skilled Waiter<br/>Non-blocking request handling"]
-    B["Independent Async Tasks<br/>Fetch menu & reviews independently"]
     C["BackgroundTasks - Online Shopping<br/>Fire-and-forget processing"]
     D["StreamingResponse - News Ticker<br/>Server-to-client streaming"]
     E["WebSocket - Phone Call<br/>Two-way real-time communication"]
+    B["Independent Async Tasks<br/>Fetch menu & reviews independently"]
     end
     
     subgraph "Server Resources"
@@ -42,16 +42,16 @@ graph TD
     
     A --> J["await asyncio.sleep(1)<br/>Non-blocking wait"]
     
-    B --> K["Menu Endpoint: fetch_menu() (2s)"]
-    B --> L["Reviews Endpoint: fetch_reviews() (5s)"]
-    K --> K1["Display Menu Immediately"]
-    L --> L1["Display Reviews When Ready"]
-    
     C --> M["Main Response"]
     C -.-> N["Background Processing"]
     
     D --> O["Event Stream"]
     E <--> P["WebSocket Connection"]
+    
+    B --> K["Menu Endpoint: fetch_menu() (2s)"]
+    B --> L["Reviews Endpoint: fetch_reviews() (5s)"]
+    K --> K1["Display Menu Immediately"]
+    L --> L1["Display Reviews When Ready"]
 ```
 
 ## 📋 Async Concepts Summary Table
