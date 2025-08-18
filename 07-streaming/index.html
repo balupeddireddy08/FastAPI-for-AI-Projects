@@ -65,16 +65,7 @@
             </div>
         </div>
 
-        <!-- Feature 4: Upload with Progress -->
-        <div class="feature-box">
-            <h2>4. Upload Command Sequence (Streaming Progress)</h2>
-            <p>Upload a new command sequence to the rover and monitor its validation progress in real-time. 
-                <a href="/download/rover-commands" download="rover_commands.txt" style="color: #93c5fd;">Download sample file.</a>
-            </p>
-            <input type="file" id="file-upload" />
-            <button onclick="uploadCommands()">Upload & Validate Sequence</button>
-            <pre id="upload-progress-output">Awaiting command sequence upload...</pre>
-        </div>
+
     </div>
 
     <script>
@@ -191,47 +182,7 @@
             }
         }
 
-        // Feature 4: Upload Progress
-        async function uploadCommands() {
-            const fileInput = document.getElementById('file-upload');
-            if (!fileInput.files.length) {
-                alert('Please select a command sequence file first!');
-                return;
-            }
-            const file = fileInput.files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            const output = document.getElementById('upload-progress-output');
-            output.textContent = 'Uploading command sequence...\n';
 
-            try {
-                const response = await fetch('/upload/rover-commands', { method: 'POST', body: formData });
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    // SSE format sends "data: <json>\n\n". We need to parse this.
-                    const chunk = decoder.decode(value, { stream: true });
-                    const lines = chunk.split('\n');
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const jsonData = line.substring(6);
-                            if (jsonData.trim()) {
-                                const data = JSON.parse(jsonData);
-                                output.textContent += `[${data.status}] ${data.detail}\n`;
-                            }
-                        }
-                    }
-                }
-                 output.textContent += '\n--- Validation Complete ---';
-            } catch (error) {
-                output.textContent += '\nError during upload or validation.';
-            }
-        }
     </script>
 </body>
 </html> 

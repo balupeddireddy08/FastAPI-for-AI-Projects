@@ -6,12 +6,10 @@ from typing import Dict, List
 
 from fastapi import (
     FastAPI,
-    File,
-    UploadFile,
     WebSocket,
     WebSocketDisconnect,
 )
-from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 import aiofiles
 
 # --- App Setup ---
@@ -154,52 +152,8 @@ async def websocket_comms_endpoint(websocket: WebSocket, team_channel: str):
 
 
 # ===================================================================================
-# FEATURE 4: Upload with Streaming Progress (Command Sequence)
+# Demo HTML Page
 # ===================================================================================
-# ANALOGY: Ordering a custom-built computer online.
-# After you place your order (upload the file), the website doesn't just go silent.
-# It gives you live updates: "Components received," "Assembly in progress,"
-# "Testing," and finally "Shipped."
-#
-# CONCEPT: A client can upload a file, and the server can stream back the
-# progress of processing that file. This provides a much better user experience
-# than a silent, long-running request, as the user gets immediate feedback.
-
-@app.post("/upload/rover-commands")
-async def upload_rover_commands(file: UploadFile = File(...)):
-    """
-    Accepts a command sequence file and streams back the validation progress.
-    """
-    async def progress_generator():
-        yield f"data: {json.dumps({'status': 'UPLOADING', 'detail': 'Receiving command file...'})}\n\n"
-        await asyncio.sleep(1) # Simulate saving the file.
-
-        # Simulate a multi-step validation pipeline on the server.
-        validation_steps = [
-            ("Checking syntax", 2),
-            ("Verifying command safety", 3),
-            ("Simulating trajectory", 4),
-            ("Final authorization", 1),
-        ]
-        
-        for step, duration in validation_steps:
-            # Push a status update to the client for each step.
-            yield f"data: {json.dumps({'status': 'VALIDATING', 'detail': f'Step: {step}...'})}\n\n"
-            await asyncio.sleep(duration)
-
-        yield f"data: {json.dumps({'status': 'COMPLETE', 'detail': 'Command sequence validated and queued for transmission.'})}\n\n"
-
-    # We use SSE format here to continuously push progress updates to the client.
-    return StreamingResponse(progress_generator(), media_type="text/event-stream")
-
-
-# ===================================================================================
-# Demo HTML Page & File Download
-# ===================================================================================
-@app.get("/download/rover-commands")
-def download_rover_commands():
-    """Provides the sample command file for download."""
-    return FileResponse("rover_commands.txt", media_type="text/plain", filename="rover_commands.txt")
 
 @app.get("/", response_class=HTMLResponse)
 def get_mission_control_dashboard():

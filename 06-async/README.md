@@ -1,4 +1,4 @@
-# 🚀 Section 7: FastAPI Async Showcase
+# 🚀 Section 6: FastAPI Async Showcase
 
 This section provides a single, cohesive example to demonstrate FastAPI's core asynchronous features. We use a simple **Food Delivery App** concept, explained with real-world analogies, to tie everything together.
 

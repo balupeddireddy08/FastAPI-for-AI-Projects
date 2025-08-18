@@ -1,4 +1,4 @@
-# 🛰️ Section 8: Advanced Streaming with "Cosmic Rover"
+# 🛰️ Section 7: Advanced Streaming with "Cosmic Rover"
 
 This section provides a focused, easy-to-understand example of advanced streaming concepts using a **"Cosmic Rover" Mission Control** theme. We'll explore how real-time data features are essential for communicating with and monitoring a rover on a distant planet.
 
@@ -7,7 +7,6 @@ This section provides a focused, easy-to-understand example of advanced streamin
 1.  **Streaming Large Responses**: Downloading a high-resolution image from the rover.
 2.  **Server-Sent Events (SSE)**: Receiving a live telemetry feed of the rover's status.
 3.  **Advanced WebSockets**: Creating separate communication channels for mission teams.
-4.  **Upload with Progress**: Sending a new command sequence and monitoring its validation.
 
 ## 📊 Streaming Concepts Visualization
 
@@ -17,37 +16,31 @@ graph TD
     A["StreamingResponse<br/>Large File Transfer"]
     B["Server-Sent Events (SSE)<br/>One-way Real-time Updates"]
     C["WebSockets<br/>Two-way Communication"]
-    D["Upload with Progress<br/>Real-time Feedback"]
     end
     
     subgraph "Cosmic Rover Example"
     E["Rover Image Feed<br/>Chunked Image Transfer"]
     F["Telemetry Feed<br/>Live Rover Status"]
     G["Mission Comms<br/>Team Chat Channels"]
-    H["Command Upload<br/>Validation Progress"]
     end
     
     A --> E
     B --> F
     C --> G
-    D --> H
     
     E --> I["yield image_chunk<br/>4KB at a time"]
     F --> J["yield telemetry_data<br/>Every 2 seconds"]
     G --> K["ConnectionManager<br/>Team-specific Rooms"]
-    H --> L["yield validation_progress<br/>Step-by-step updates"]
     
     subgraph "Client Experience"
     M["Immediate Start<br/>Progressive Loading"]
     N["Real-time Updates<br/>Without Polling"]
     O["Interactive Chat<br/>Multiple Channels"]
-    P["Upload Feedback<br/>Process Visibility"]
     end
     
     I --> M
     J --> N
     K --> O
-    L --> P
 ```
 
 ## 📋 Streaming Concepts Summary Table
@@ -60,7 +53,6 @@ graph TD
 | **SSE Format** | Structured event stream | `yield f"data: {json.dumps(data)}\n\n"` | Browser-compatible event format |
 | **WebSockets** | Team communication | `@app.websocket("/ws/comms/{team_channel}")` | Full-duplex real-time messaging |
 | **Connection Manager** | Multi-channel chat | `manager.broadcast_to_room(message, room)` | Organized communication channels |
-| **Upload with Progress** | Command validation | `yield f"data: {json.dumps({'status': 'VALIDATING'})}\n\n"` | Real-time feedback during processing |
 | **Infinite Generators** | Continuous monitoring | `while True: yield data; await asyncio.sleep(2)` | Never-ending data streams |
 | **Error Handling** | Robust connections | `try/except` around WebSocket operations | Graceful disconnection handling |
 | **Media Types** | Content identification | `media_type="image/jpeg"` | Browser-compatible content rendering |
@@ -147,32 +139,7 @@ graph TD
         wscat -c ws://localhost:8000/ws/comms/science
         ```
 
-### 4. Upload with Progress: Validating Command Sequences
 
--   **Analogy**: Ordering a custom-built computer online. After you submit your order (upload the file), the website doesn't just go silent. It gives you live updates on a timeline: "Components Received," "Assembly in Progress," "Quality Testing," and finally "Shipped."
--   **Concept**: A client can upload a file, and the server can immediately start streaming back the progress of processing that file. This provides a much better user experience than a silent, long-running request, as the user gets immediate feedback on the server's progress.
--   **Code Explanation**: The `/upload/rover-commands` endpoint receives a file. It then immediately returns a `StreamingResponse` that runs a `progress_generator`. This generator simulates a multi-step validation process, `yield`ing a status update (using SSE format) to the client after each step completes.
-
-    ```python
-    @app.post("/upload/rover-commands")
-    async def upload_rover_commands(file: UploadFile = File(...)):
-        """Accepts a command sequence file and streams back the validation progress."""
-        async def progress_generator():
-            yield f"data: {json.dumps({'status': 'UPLOADING', 'detail': '...'})}\n\n"
-            # ... loop through validation steps ...
-            for step, duration in validation_steps:
-                yield f"data: {json.dumps({'status': 'VALIDATING', 'detail': f'Step: {step}'})}\n\n"
-                await asyncio.sleep(duration)
-            yield f"data: {json.dumps({'status': 'COMPLETE', 'detail': '...'})}\n\n"
-        return StreamingResponse(progress_generator(), media_type="text/event-stream")
-    ```
-
-    - **Terminal (`curl`) Example**:
-        ```bash
-        # First, download the sample command file from the UI or create your own.
-        # Then, from the 'streaming' directory, run this command.
-        curl -X POST -F "file=@./rover_commands.txt" http://localhost:8000/upload/rover-commands
-        ```
 
 ---
 
@@ -189,7 +156,7 @@ graph TD
     ```
 2.  Navigate into the streaming directory:
     ```bash
-    cd 08-streaming
+    cd 07-streaming
     ```
 3.  From **inside the `streaming` directory**, run the Uvicorn server:
     ```bash
