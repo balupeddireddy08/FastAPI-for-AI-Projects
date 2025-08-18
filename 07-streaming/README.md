@@ -10,37 +10,75 @@ This section provides a focused, easy-to-understand example of advanced streamin
 
 ## 📊 Streaming Concepts Visualization
 
+### Overview: All Three Streaming Concepts
+```mermaid
+graph LR
+    subgraph "FastAPI Streaming Features"
+    A["🖼️ StreamingResponse<br/>Large File Transfer"]
+    B["📡 Server-Sent Events<br/>Real-time Updates"]
+    C["💬 WebSockets<br/>Bidirectional Chat"]
+    end
+    
+    A --> A1["Rover Image Feed"]
+    B --> B1["Live Telemetry"]
+    C --> C1["Team Communications"]
+```
+
+### Concept 1: StreamingResponse (Image Feed)
 ```mermaid
 graph TD
-    subgraph "Streaming Concepts"
-    A["StreamingResponse<br/>Large File Transfer"]
-    B["Server-Sent Events (SSE)<br/>One-way Real-time Updates"]
-    C["WebSockets<br/>Two-way Communication"]
-    end
+    A["Client Request<br/>/stream/rover-image"] --> B["FastAPI Endpoint"]
+    B --> C["async def image_chunk_generator()"]
+    C --> D["aiofiles.open('rover_image.jpg')"]
+    D --> E["while chunk := await f.read(4096)"]
+    E --> F["yield chunk"]
+    F --> G["StreamingResponse()"]
+    G --> H["HTTP Response<br/>Content-Type: image/jpeg"]
+    H --> I["Client receives chunks<br/>progressively"]
+    I --> J["Browser assembles<br/>complete image"]
     
-    subgraph "Cosmic Rover Example"
-    E["Rover Image Feed<br/>Chunked Image Transfer"]
-    F["Telemetry Feed<br/>Live Rover Status"]
-    G["Mission Comms<br/>Team Chat Channels"]
-    end
+    style A fill:#e1f5fe
+    style J fill:#c8e6c9
+```
+
+### Concept 2: Server-Sent Events (Telemetry)
+```mermaid
+graph TD
+    A["Client EventSource<br/>/stream/rover-telemetry"] --> B["FastAPI Endpoint"]
+    B --> C["async def telemetry_generator()"]
+    C --> D["while True: (infinite loop)"]
+    D --> E["Generate rover data<br/>location, battery, signal"]
+    E --> F["yield f'data: {json_data}\\n\\n'"]
+    F --> G["StreamingResponse<br/>media_type: text/event-stream"]
+    G --> H["Client receives<br/>SSE messages"]
+    H --> I["await asyncio.sleep(2)"]
+    I --> D
+    H --> J["Real-time dashboard<br/>updates automatically"]
     
-    A --> E
-    B --> F
-    C --> G
+    style A fill:#e1f5fe
+    style J fill:#c8e6c9
+    style D fill:#fff3e0
+```
+
+### Concept 3: WebSockets (Team Communications)
+```mermaid
+graph TD
+    A["Client WebSocket<br/>ws://localhost/ws/comms/science"] --> B["@app.websocket endpoint"]
+    B --> C["ConnectionManager.connect()"]
+    C --> D["Add to active_connections<br/>for 'science' room"]
+    D --> E["websocket.accept()"]
+    E --> F["while True: listen for messages"]
+    F --> G["await websocket.receive_text()"]
+    G --> H["manager.broadcast_to_room()<br/>Send to all in same channel"]
+    H --> I["Other team members<br/>receive message instantly"]
+    G --> F
     
-    E --> I["yield image_chunk<br/>4KB at a time"]
-    F --> J["yield telemetry_data<br/>Every 2 seconds"]
-    G --> K["ConnectionManager<br/>Team-specific Rooms"]
+    J["Client sends message"] --> G
+    K["WebSocketDisconnect"] --> L["manager.disconnect()<br/>Clean up connection"]
     
-    subgraph "Client Experience"
-    M["Immediate Start<br/>Progressive Loading"]
-    N["Real-time Updates<br/>Without Polling"]
-    O["Interactive Chat<br/>Multiple Channels"]
-    end
-    
-    I --> M
-    J --> N
-    K --> O
+    style A fill:#e1f5fe
+    style I fill:#c8e6c9
+    style F fill:#fff3e0
 ```
 
 ## 📋 Streaming Concepts Summary Table
