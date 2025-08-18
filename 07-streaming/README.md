@@ -116,6 +116,16 @@ graph TD
         return StreamingResponse(image_chunk_generator(), media_type="image/jpeg")
     ```
 
+    **Flow Diagram:**
+    ```mermaid
+    graph LR
+        A["Client Request"] --> B["Read 4KB chunks"]
+        B --> C["yield chunk"]
+        C --> D["Browser assembles image"]
+        style A fill:#e3f2fd
+        style D fill:#e8f5e8
+    ```
+
     - **Terminal (`curl`) Example**:
         ```bash
         # This will stream the raw image data to a new file named 'received_image.jpg'
@@ -138,6 +148,20 @@ graph TD
                 yield f"data: {json.dumps(telemetry_data)}\n\n"
                 await asyncio.sleep(2)
         return StreamingResponse(telemetry_generator(), media_type="text/event-stream")
+    ```
+
+    **Flow Diagram:**
+    ```mermaid
+    graph LR
+        A["EventSource Connect"] --> B["while True: loop"]
+        B --> C["Generate telemetry"]
+        C --> D["yield SSE data"]
+        D --> E["Client updates UI"]
+        E --> F["sleep(2)"]
+        F --> B
+        style A fill:#e3f2fd
+        style E fill:#e8f5e8
+        style B fill:#fff8e1
     ```
 
     - **Terminal (`curl`) Example**:
@@ -167,6 +191,19 @@ graph TD
                 await manager.broadcast_to_room(f"Message: {data}", team_channel)
         except WebSocketDisconnect:
             manager.disconnect(websocket, team_channel)
+    ```
+
+    **Flow Diagram:**
+    ```mermaid
+    graph LR
+        A["WebSocket Connect"] --> B["Join team room"]
+        B --> C["Listen for messages"]
+        C --> D["Broadcast to room"]
+        D --> E["Team members receive"]
+        F["Send message"] --> C
+        style A fill:#e3f2fd
+        style E fill:#e8f5e8
+        style C fill:#fff8e1
     ```
 
     - **Terminal (`wscat`) Example**:
